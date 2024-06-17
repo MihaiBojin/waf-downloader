@@ -1,0 +1,80 @@
+query GetFirewallEventsAdaptive($zoneTag: string, $limit: int, $filter: FirewallEventsAdaptiveFilter_InputObject)
+{
+  viewer {
+    zones(filter: { zoneTag: $zoneTag }) {
+      firewallEventsAdaptive(
+        filter: $filter
+        limit: $limit # max value 10000
+        orderBy: [datetime_ASC]
+      ) {
+        action
+        clientASNDescription
+        clientAsn
+        clientCountryName
+        clientIP
+        clientIPClass
+        clientRefererHost
+        clientRefererPath
+        clientRefererQuery
+        clientRefererScheme
+        clientRequestHTTPHost
+        clientRequestHTTPMethodName
+        clientRequestHTTPProtocol
+        clientRequestPath
+        clientRequestQuery
+        clientRequestScheme
+        contentScanHasFailed
+        contentScanNumMaliciousObj
+        contentScanObjResults
+        datetime
+        description
+        edgeColoName
+        edgeResponseStatus
+        leakedCredentialCheckResult
+        originResponseStatus
+        originatorRayName
+        rayName
+        ruleId
+        rulesetId
+        source
+        userAgent
+        zoneVersion
+      }
+    }
+  }
+}
+
+# Events that we couldn't pull
+        # Cannot access
+        #botScore
+        #botScoreSrcName
+        #ja3Hash
+        #ja4
+        #ja4Signals {
+          #signalName
+          #signalValue
+        #}
+        #wafAttackScore
+        #wafAttackScoreClass
+        #wafRceAttackScore
+        #wafSqliAttackScore
+        #wafXssAttackScore
+
+        # Could not fit in 35 fields
+        #apiGatewayMatchedEndpoint
+        #apiGatewayMatchedHost
+        #contentScanNumObj
+        #contentScanObjSizes
+        #contentScanObjTypes
+        #date
+        #datetimeFifteenMinutes
+        #datetimeFiveMinutes
+        #datetimeHour
+        #datetimeMinute
+        #kind
+        #matchIndex#
+        #metadata {
+        #  key
+        #  value
+        #}
+        #sampleInterval#

@@ -14,7 +14,6 @@ if [ -d "$VENV" ]; then
     exit 1
 fi
 
-# Create virtualenv
 PYTHON=python
 if command -v python3.11 >/dev/null 2>&1; then
     PYTHON="python3.11"

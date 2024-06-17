@@ -1,0 +1,53 @@
+query GetFirewallEventsAdaptiveExtended($zoneTag: string, $limit: int, $filter: FirewallEventsAdaptiveFilter_InputObject)
+{
+  viewer {
+    zones(filter: { zoneTag: $zoneTag }) {
+      firewallEventsAdaptive(
+        filter: $filter
+        limit: $limit # max value 10000
+        orderBy: [datetime_ASC]
+      ) {
+        action
+        datetime
+        description
+        rayName
+        apiGatewayMatchedEndpoint
+        apiGatewayMatchedHost
+        contentScanNumObj
+        contentScanObjSizes
+        contentScanObjTypes
+        kind
+        matchIndex
+        metadata {
+          key
+          value
+        }
+        ref
+        sampleInterval
+      }
+    }
+  }
+}
+
+# Events that we couldn't pull
+        # Cannot access
+        #botScore
+        #botScoreSrcName
+        #ja3Hash
+        #ja4
+        #ja4Signals {
+          #signalName
+          #signalValue
+        #}
+        #wafAttackScore
+        #wafAttackScoreClass
+        #wafRceAttackScore
+        #wafSqliAttackScore
+        #wafXssAttackScore
+
+        # Not needed
+        #date
+        #datetimeFifteenMinutes
+        #datetimeFiveMinutes
+        #datetimeHour
+        #datetimeMinute

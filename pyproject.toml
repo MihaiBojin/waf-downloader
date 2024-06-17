@@ -1,7 +1,7 @@
 [project]
-name = 'template_python_package_2024'
+name = 'waf_downloader'
 license = "Apache-2.0"
-description = "A starter template for Python packages."
+description = "Cloudflare WAF logs downloader."
 keywords = ["python", "package", "template", "2024"]
 readme = { "file" = "README.md", "content-type" = "text/markdown" }
 authors = [
@@ -19,12 +19,12 @@ classifiers = [
 ] # https://pypi.org/classifiers/
 
 [project.urls]
-"Bug reports" = "https://github.com/MihaiBojin/template_python_package_2024/issues/new"
-"Documentation" = "https://github.com/MihaiBojin/template_python_package_2024/blob/main/python/README.md"
-"Source" = "https://github.com/MihaiBojin/template_python_package_2024"
+"Bug reports" = "https://github.com/MihaiBojin/waf-downloader/issues/new"
+"Documentation" = "https://github.com/MihaiBojin/waf-downloader/blob/main/python/README.md"
+"Source" = "https://github.com/MihaiBojin/waf-downloader"
 
 [project.scripts]
-demo-cli = "template_cli_package.demo_cli:main"
+waf-downloader = "waf_logs_cli.cli:main"
 
 [build-system]
 requires = ["hatchling", "hatch-requirements-txt"]
@@ -46,15 +46,10 @@ exclude = [
     "scripts/**",
     "tests/**",
     # keep-sorted end
-
-    # If you want to include any scripts, list them below
-    # keep-sorted start
-    "!scripts/verify-publish.bash",
-    # keep-sorted end
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/template_package", "src/template_cli_package"]
+packages = ["src/waf_logs", "src/waf_logs_cli"]
 
 [tool.hatch.metadata.hooks.requirements_txt]
 files = ["requirements.txt"]
@@ -71,7 +66,6 @@ path = "./VERSION"
 pattern = "(?P<version>.+)"
 
 [tool.mypy]
-# keep-sorted start
 check_untyped_defs = true
 disallow_untyped_calls = true
 namespace_packages = false
@@ -80,8 +74,7 @@ show_column_numbers = true
 show_error_codes = true
 warn_no_return = false
 warn_unused_ignores = true
-# keep-sorted end
 
-# Add per-package mypi configurations, if needed
-#[[tool.mypy.overrides]]
-#module = '[NAME].*'
+[[tool.mypy.overrides]]
+module = 'requests.*'
+ignore_missing_imports = true

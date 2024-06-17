@@ -1,4 +1,4 @@
 # CLI requirements
 # keep-sorted start
-
+python-dotenv==1.0.1
 # keep-sorted end
