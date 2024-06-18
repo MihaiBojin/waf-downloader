@@ -57,6 +57,7 @@ while [[ "$#" -gt 0 ]]; do
     case $1 in
     --test)
         echo "Installing requirements-cli from main index, since not all packages are available in test.pypi..."
+        pip install -r "$DIR"/../requirements.txt
         pip install -r "$DIR"/../requirements-cli.txt
         echo "Attempting install: ${PROJECT_NAME}==$VERSION"
         retry pip install --index-url https://test.pypi.org/simple/ "${PROJECT_NAME}==$VERSION"
