@@ -17,5 +17,4 @@ COPY dist /app/dist
 
 RUN pip install --no-cache-dir "/app/dist/${PROJECT_NAME}-${VERSION}-py3-none-any.whl[cli]"
 
-#CMD ["/bin/bash"]
-CMD ["python", "/usr/local/bin/waf-downloader"]
+ENTRYPOINT ["python", "/usr/local/bin/waf-downloader"]

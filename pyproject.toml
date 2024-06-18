@@ -40,10 +40,7 @@ exclude = [
     ".pre-commit-config.yaml",
     ".pypirc",
     ".vscode",
-    "Dockerfile",
-    "Makefile",
     "renovate.json",
-    "scripts/**",
     "tests/**",
     # keep-sorted end
 ]

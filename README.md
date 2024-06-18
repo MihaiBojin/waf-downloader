@@ -5,23 +5,9 @@
 [![Python Versions](https://img.shields.io/pypi/pyversions/waf-downloader.svg)](https://pypi.org/project/waf-downloader/)
 [![License](https://img.shields.io/github/license/waf-downloader/waf-downloader.svg)](LICENSE)
 
-Use this repo as a template for starting multi-package Python projects.
-
-## AWS credentials
-
-```shell
-export AWS_ACCESS_KEY_ID=...
-export AWS_SECRET_ACCESS_KEY=...
-```
-
-## Documentation
-
-- <https://developers.cloudflare.com/analytics/graphql-api/tutorials/querying-firewall-events>
-- <https://developers.cloudflare.com/analytics/graphql-api/tutorials/export-graphql-to-csv/>
-
 ## Schema
 
-See [src/waf_logs/resources/db/](./src/waf_logs/resources/db) for a list of schemas that are auto-applied at start.
+See [src/waf_logs/resources/db/](./src/waf_logs/resources/db) for a list of schemas that are auto-applied at start. This can be disabled by passing `--ensure_schema False`.
 
 ## Quickstart
 
@@ -41,15 +27,20 @@ Define secrets in an `.env` file (do not quote values):
 
 ```properties
 CLOUDFLARE_TOKEN=...
-CLOUDFLARE_ZONE_ID=...
 DB_CONN_STR=...
-CHUNK_SIZE=500 # Optional
 ```
+
+The Cloudflare token is required, but the connection string is optional.
+If skipped, it will result in logs being printed to stdout.
 
 Build and run:
 
 ```shell
-make docker docker-run
+# Build
+make docker
+
+# Load all logs in zone, starting 5 minutes prior
+make docker-run ARGS="--zone_id [CLOUDFLARE_ZONE_ID] --start_minutes_ago -5"
 ```
 
 ## Publishing to PyPI
@@ -68,7 +59,7 @@ A [GitHub Action](https://github.com/MihaiBojin/waf-downloader/actions) will run
 
 ### Manual publish
 
-These steps can also be performed locally. For these commands to work, you will need to export two environment variables:
+These steps can also be performed locally. For these commands to work, you will need to export two environment variables (or define them in `.env`):
 
 ```shell
 export TESTPYPI_PASSWORD=... # token for https://test.pypi.org/legacy/
@@ -92,3 +83,8 @@ Verify the distributed code
 ```shell
 make publish-verify
 ```
+
+## Cloudflare WAF documentation
+
+- <https://developers.cloudflare.com/analytics/graphql-api/tutorials/querying-firewall-events>
+- <https://developers.cloudflare.com/analytics/graphql-api/tutorials/export-graphql-to-csv/>
