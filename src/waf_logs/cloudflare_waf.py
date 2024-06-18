@@ -93,8 +93,7 @@ def get_waf_logs(
 
     return LogResult(
         logs=result,
-        # This does not account for the edge case that the last event is exactly at the limit
-        # TODO(): Add extra logic to check this case
+        # TODO(#3): Handle `last_event==intended_end_time && overflown`
         overflown=len(result) == MAX_LOG_LIMIT,
         last_event=iso_to_datetime(result[-1].datetime),
         intended_end_time=end_time,
