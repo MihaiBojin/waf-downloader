@@ -1,4 +1,5 @@
 import json
+import sys
 import threading
 import time
 from typing import Any, Callable, List
@@ -24,7 +25,7 @@ class Database:
         # Close all connections in the pool
         if self.connection_pool and not self.connection_pool.closed:
             self.connection_pool.closeall()
-        print("Connection pool destroyed")
+        print("Connection pool destroyed", file=sys.stderr)
 
     def pool(self) -> pool.SimpleConnectionPool:
         if not self.connection_pool or self.connection_pool.closed:
@@ -37,7 +38,7 @@ class Database:
 
                 # Check if the pool was created successfully
                 if self.connection_pool:
-                    print("Connection pool created successfully")
+                    print("Connection pool created successfully", file=sys.stderr)
 
         return self.connection_pool
 
@@ -77,8 +78,8 @@ class Database:
             version = cur.fetchone()[0]
 
             # Print the results
-            print("Current time:", time)
-            print("PostgreSQL version:", version)
+            print(f"Current time: {time}", file=sys.stderr)
+            print(f"PostgreSQL version: {version}", file=sys.stderr)
 
         finally:
             # Close the cursor
@@ -92,7 +93,7 @@ class Database:
             try:
                 cur.execute(sql)
                 conn.commit()
-                print("Executed.")
+                print("Executed.", file=sys.stderr)
 
             finally:
                 # Close the cursor
@@ -154,6 +155,6 @@ class Database:
         schemas = list_files("resources/db", package_name=__package__)
 
         for schema in schemas:
-            print(f"Applying schema file: {schema}")
+            print(f"Applying schema file: {schema}", file=sys.stderr)
             sql = read_file(f"resources/db/{schema}", package_name=__package__)
             self.pooled_exec(Database.execute(sql))

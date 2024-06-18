@@ -23,7 +23,6 @@ class TestMergeLogs(unittest.TestCase):
         # ACT
         results = [result1, result2, result3]
         result = merge_logs(results)
-        print(result)
 
         # ASSERT
         expected = [

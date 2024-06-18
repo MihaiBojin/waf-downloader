@@ -38,7 +38,7 @@ if ! make build; then
     echo "Reverting version to repository value..."
     git checkout -- "$VERSION_FILE"
     echo
-    echo "Aborting..." 2>&1
+    echo "Aborting..." >&2
     exit 1
 fi
 # Revert the version after the dist/ was built

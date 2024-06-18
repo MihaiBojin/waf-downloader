@@ -27,5 +27,5 @@ readonly PROJECT_NAME
 # Run the image
 docker run \
     --env-file .env \
-    -it "$PROJECT_NAME:$TAG" \
+    "$PROJECT_NAME:$TAG" \
     "$@"

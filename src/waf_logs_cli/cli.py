@@ -8,6 +8,7 @@ import argparse
 from datetime import datetime
 import multiprocessing
 import os
+import sys
 import time
 from waf_logs.db import Database
 from dotenv import load_dotenv
@@ -109,7 +110,7 @@ def main() -> None:
         )
 
     t0 = time.time()
-    print("Downloading WAF logs...")
+    print("Downloading WAF logs...", file=sys.stderr)
     download_loop(
         zone_id=zone_id,
         token=token,
@@ -118,7 +119,7 @@ def main() -> None:
         sink=sink,
     )
     t1 = time.time() - t0
-    print(f"Completed after {t1:.2f} seconds")
+    print(f"Completed after {t1:.2f} seconds", file=sys.stderr)
 
 
 if __name__ == "__main__":

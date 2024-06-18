@@ -43,6 +43,9 @@ make docker
 
 # Load all logs in zone, starting 5 minutes prior
 make docker-run ARGS="--zone_id [CLOUDFLARE_ZONE_ID] --start_minutes_ago -5"
+
+# And alternatively, only output the logs
+make docker-run ARGS="--zone_id [CLOUDFLARE_ZONE_ID] --start_minutes_ago -5" 2>/dev/null
 ```
 
 ## Publishing to PyPI

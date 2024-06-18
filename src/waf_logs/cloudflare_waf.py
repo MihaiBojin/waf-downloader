@@ -8,6 +8,7 @@ Functions:
     - get_waf_logs: Download logs from Cloudflare
 """
 
+import sys
 from typing import Dict, List, Optional
 import requests
 from waf_logs.get_secret import get_secret
@@ -72,7 +73,10 @@ def get_waf_logs(
     }
 
     # Make the request
-    print(f"Downloading logs between {start_time} and {end_time} (query: {query})")
+    print(
+        f"Downloading logs between {start_time} and {end_time} (query: {query})",
+        file=sys.stderr,
+    )
     response = requests.post(
         URL, json={"query": graphql, "variables": variables}, headers=headers
     )

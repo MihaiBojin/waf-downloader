@@ -7,6 +7,8 @@ Cloudflare WAF logs downloader library
 from abc import ABC
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
+import json
+import sys
 import time
 from typing import Any, List, NamedTuple, Optional
 
@@ -44,7 +46,8 @@ class DebugOutput(Output):
         """Saves the result to a Database."""
 
         for log in result.logs:
-            print(log)
+            # Print logs to stdout
+            print(json.dumps(log.data), file=sys.stdout)
 
 
 class DatabaseOutput(Output):
@@ -71,7 +74,8 @@ class DatabaseOutput(Output):
             duration, rows_inserted, all_rows, total_bytes = results
             row_per_sec = rows_inserted / duration
             print(
-                f"Inserted {rows_inserted}/{all_rows} new records into {self.table_name} ({total_bytes:,} bytes) in {duration:.2f} seconds [{row_per_sec:.0f} rows/s]"
+                f"Inserted {rows_inserted}/{all_rows} new records into {self.table_name} ({total_bytes:,} bytes) in {duration:.2f} seconds [{row_per_sec:.0f} rows/s]",
+                file=sys.stderr,
             )
             return results
 
@@ -80,7 +84,10 @@ class DatabaseOutput(Output):
         total_chunks = len(result.logs) // self.chunk_size + (
             1 if len(result.logs) % self.chunk_size != 0 else 0
         )
-        print(f"Inserting {len(result.logs)} records in {total_chunks} chunks...")
+        print(
+            f"Inserting {len(result.logs)} records in {total_chunks} chunks...",
+            file=sys.stderr,
+        )
 
         # Use a ThreadPoolExecutor to insert data concurrently
         t0 = time.time()
@@ -93,7 +100,8 @@ class DatabaseOutput(Output):
         rows_per_sec = len(result.logs) / t1
         bytes_per_sec = total_bytes / t1
         print(
-            f"Completed after {t1:.2f} seconds ({rows_per_sec:,.0f} rows/sec; {bytes_per_sec:,.0f} bytes/sec)."
+            f"Completed after {t1:.2f} seconds ({rows_per_sec:,.0f} rows/sec; {bytes_per_sec:,.0f} bytes/sec).",
+            file=sys.stderr,
         )
 
 
@@ -122,7 +130,8 @@ def fetch_logs(
         )
 
         print(
-            f"Downloaded {len(result.logs)} logs up until {result.last_event}, overflown={result.overflown}"
+            f"Downloaded {len(result.logs)} logs up until {result.last_event}, overflown={result.overflown}",
+            file=sys.stderr,
         )
         logs += result.logs
 
@@ -181,7 +190,8 @@ def compute_next_window(
         # exactly on the start of the datetime window
         if current_start_time == start_time:
             print(
-                f"Download seems stuck at ({start_time}; offsetting by +1 minute and skipping some logs"
+                f"Download seems stuck at ({start_time}; offsetting by +1 minute and skipping some logs",
+                file=sys.stderr,
             )
             # in which case advance by a minute
             start_time = compute_time(start_time, +1)
