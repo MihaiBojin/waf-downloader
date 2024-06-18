@@ -12,7 +12,7 @@ import time
 from waf_logs.db import Database
 from dotenv import load_dotenv
 
-from waf_logs.downloader import DatabaseOutput, DebugOutput, download_loop
+from waf_logs.downloader import DatabaseOutput, DebugOutput, Output, download_loop
 from waf_logs.helpers import compute_time
 
 
@@ -25,7 +25,6 @@ def main() -> None:
         description="Load downloader configuration arguments"
     )
     parser.add_argument(
-        "-z",
         "--zone_id",
         type=str,
         required=True,
@@ -35,30 +34,31 @@ def main() -> None:
         "--start_time",
         type=lambda s: datetime.fromisoformat(s),
         required=False,
-        help="The starting point of the datetime in ISO 8601 format (e.g., 2023-12-25T10:30:00)",
+        help="The starting point of the datetime in ISO 8601 format (e.g., 2023-12-25T10:30:00Z)."
+        "This is mutually exclusive with --start_minutes_ago.",
     )
     parser.add_argument(
         "--start_minutes_ago",
         type=int,
         required=False,
-        help="A relative duration, specified in minutes, from which to start downloading logs",
+        help="A relative duration, specified in minutes, from which to start downloading logs."
+        "For example, if --start_minutes_ago=-5, the script will download events more recent than 5 minutes ago."
+        "This is mutually exclusive with --start_time.",
     )
     parser.add_argument(
-        "-c",
         "--concurrency",
         type=int,
         default=0,
-        help="How many threads should concurrently download and insert chunks",
+        help="How many threads should concurrently download and insert chunks"
+        "The default of 0 will cause the number of available cores to be used.",
     )
     parser.add_argument(
-        "-c",
         "--chunk_size",
         type=int,
         default=1000,
         help="The chunk size used for bulk inserts",
     )
     parser.add_argument(
-        "-e",
         "--ensure_schema",
         type=bool,
         default=True,
@@ -72,7 +72,11 @@ def main() -> None:
         parser.error("One of '--start_time' or '--start_minutes_ago' must be provided.")
     start_time = args.start_time
     if args.start_minutes_ago is not None:
-        start_time = compute_time(at=None, delta_by_minutes=-args.start_minutes_ago)
+        if args.start_minutes_ago > 0:
+            parser.error(
+                "--start_minutes_ago must be negative as the starting time cannot be in the future."
+            )
+        start_time = compute_time(at=None, delta_by_minutes=args.start_minutes_ago)
 
     # Auto-detect available cores, if concurrency not explicitly set
     concurrency = (
@@ -80,7 +84,6 @@ def main() -> None:
     )
     chunk_size = args.chunk_size
     ensure_schema = args.ensure_schema
-    concurrency = args.concurrency
 
     # Get Cloudflare settings
     token = os.getenv("CLOUDFLARE_TOKEN")
@@ -89,12 +92,9 @@ def main() -> None:
             "A valid Cloudflare token must be specified via CLOUDFLARE_TOKEN"
         )
 
-    # Get connection string
-    connection_string = os.getenv("DB_CONN_STR")
-    if connection_string is None:
-        raise ValueError("Connection string must be specified via DB_CONN_STR")
-
     # Initialize the sink
+    sink: Output
+    connection_string = os.getenv("DB_CONN_STR")
     if connection_string is None:
         sink = DebugOutput()
     else:

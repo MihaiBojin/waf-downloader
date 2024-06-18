@@ -44,7 +44,7 @@ def get_waf_logs(
 
     # Prevent path traversal
     validate_name(query)
-    query = read_file(f"resources/{query}.graphql", package_name=__package__)
+    graphql = read_file(f"resources/{query}.graphql", package_name=__package__)
 
     if start_time > end_time:
         raise ValueError(
@@ -72,9 +72,9 @@ def get_waf_logs(
     }
 
     # Make the request
-    print(f"Attempting to download logs between {start_time} and {end_time}...")
+    print(f"Downloading logs between {start_time} and {end_time} (query: {query})")
     response = requests.post(
-        URL, json={"query": query, "variables": variables}, headers=headers
+        URL, json={"query": graphql, "variables": variables}, headers=headers
     )
 
     # Check the response status and content

@@ -1,0 +1,31 @@
+query GetFirewallEventsAdaptiveRestricted(
+  $zoneTag: string
+  $limit: int
+  $filter: FirewallEventsAdaptiveFilter_InputObject
+) {
+  viewer {
+    zones(filter: { zoneTag: $zoneTag }) {
+      firewallEventsAdaptive(
+        filter: $filter
+        limit: $limit # max value 10000
+        orderBy: [datetime_ASC]
+      ) {
+        rayName
+        datetime
+        botScore
+        botScoreSrcName
+        ja3Hash
+        ja4
+        ja4Signals {
+          signalName
+          signalValue
+        }
+        wafAttackScore
+        wafAttackScoreClass
+        wafRceAttackScore
+        wafSqliAttackScore
+        wafXssAttackScore
+      }
+    }
+  }
+}

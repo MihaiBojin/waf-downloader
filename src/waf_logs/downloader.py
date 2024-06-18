@@ -103,7 +103,7 @@ def fetch_logs(
     query: str,
     start_time: datetime,
     end_time: datetime,
-):
+) -> List[WAF]:
     """Fetch WAF logs from the Cloudflare API, up to the most recent timestamp."""
 
     # Add the initial interval
@@ -133,6 +133,8 @@ def fetch_logs(
 
         # process the remainder of the interval
         q.put(next_window)
+
+    return logs
 
 
 def download_loop(
@@ -205,8 +207,8 @@ def merge_logs(logs: List[List[WAF]]) -> List[WAF]:
 
     # for each unique pair of rayName and datetime, merge the data
     merged = dict()
-    for r in logs:
-        for w in r:
+    for log in logs:
+        for w in log:
             key = (w.rayName, w.datetime)
             if key not in merged:
                 merged[key] = w
