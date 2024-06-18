@@ -12,11 +12,12 @@ from typing import Dict, List, Optional
 import requests
 from waf_logs.get_secret import get_secret
 from typing import NamedTuple
-from waf_logs.helpers import compute_time, iso_to_datetime, read_file, validate_name
+from waf_logs.helpers import iso_to_datetime, read_file, validate_name
 from datetime import datetime
 
 # Define the endpoint URL
 URL = "https://api.cloudflare.com/client/v4/graphql"
+MAX_LOG_LIMIT = 10_000  # defined by the Cloudflare API
 
 
 class WAF(NamedTuple):
@@ -27,7 +28,7 @@ class WAF(NamedTuple):
 
 class LogResult(NamedTuple):
     logs: List[WAF]
-    overflow: bool
+    overflown: bool
     last_event: datetime
     intended_end_time: datetime
 
@@ -35,11 +36,9 @@ class LogResult(NamedTuple):
 def get_waf_logs(
     zone_tag: str,
     cloudflare_token: Optional[str],
-    start_time: Optional[datetime],
-    end_time: Optional[datetime],
-    query: str = "get_firewall_events",  # must map to resources/QUERY.graphql
-    limit: int = 10000,
-    default_time_window_in_minutes: int = 5,
+    query: str,  # must map to resources/QUERY.graphql
+    start_time: datetime,
+    end_time: datetime,
 ) -> LogResult:
     """Download WAF logs from the Cloudflare analytics API"""
 
@@ -47,18 +46,9 @@ def get_waf_logs(
     validate_name(query)
     query = read_file(f"resources/{query}.graphql", package_name=__package__)
 
-    if end_time is None:
-        # Always default to a past NN % 5 minute to avoid missing events
-        end_time = compute_time(at=None)
-
-    if start_time is None:
-        start_time = compute_time(
-            at=end_time, delta_by_minutes=-default_time_window_in_minutes
-        )
-
     if start_time > end_time:
         raise ValueError(
-            f" Start time ({start_time}) must be before end time ({end_time})"
+            f" Start time ({start_time}) must be a valid time prior to ({end_time})"
         )
 
     filter = {
@@ -68,7 +58,7 @@ def get_waf_logs(
     variables = {
         "zoneTag": zone_tag,
         "filter": filter,
-        "limit": limit,
+        "limit": MAX_LOG_LIMIT,
     }
 
     # Load the Cloudflare token
@@ -103,7 +93,9 @@ def get_waf_logs(
 
     return LogResult(
         logs=result,
-        overflow=len(result) == limit,
+        # This does not account for the edge case that the last event is exactly at the limit
+        # TODO(): Add extra logic to check this case
+        overflown=len(result) == MAX_LOG_LIMIT,
         last_event=iso_to_datetime(result[-1].datetime),
         intended_end_time=end_time,
     )

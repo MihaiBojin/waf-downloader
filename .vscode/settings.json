@@ -1,6 +1,9 @@
 {
   "cSpell.words": [
+    // keep-sorted start
+    "dotenv",
     "shellcheck",
+    // keep-sorted end
   ],
   "editor.formatOnSave": true,
   "python.defaultInterpreterPath": "venv/bin/python",

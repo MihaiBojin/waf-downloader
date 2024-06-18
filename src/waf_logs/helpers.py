@@ -1,11 +1,13 @@
 from datetime import timedelta, datetime, timezone
 import importlib
 from pathlib import Path
-from typing import Any, Generator, List, Optional, Tuple
+from typing import List, Optional
 
 
 def compute_time(at: Optional[datetime], delta_by_minutes: int = 0) -> datetime:
-    """Computes a time before the previous minute divisible by 5, by the specified duration."""
+    """Computes a time before the previous minute divisible by 5, by the specified duration.
+    If 'at' is None, compute the most recent timestamp (i.e., :00, :05, :10, etc.)
+    """
 
     if at is None:
         at = datetime.now(tz=timezone.utc)
@@ -25,14 +27,6 @@ def compute_time(at: Optional[datetime], delta_by_minutes: int = 0) -> datetime:
 def iso_to_datetime(at: str) -> datetime:
     """Converts and ISO string date to a datetime obj."""
     return datetime.fromisoformat(at)
-
-
-def chunked(
-    lst: List[Any], chunk_size: int
-) -> Generator[Tuple[int, List[Any]], None, None]:
-    """Yield successive chunks of size chunk_size from lst."""
-    for i in range(0, len(lst), chunk_size):
-        yield i, lst[i : i + chunk_size]
 
 
 def validate_name(name: str):

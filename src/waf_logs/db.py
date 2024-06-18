@@ -4,7 +4,7 @@ import time
 from typing import Any, Callable, List
 from psycopg2 import pool
 
-from waf_logs.cloudflare_waf import WAF
+from waf_logs import WAF
 from waf_logs.helpers import list_files, read_file, validate_name
 
 
