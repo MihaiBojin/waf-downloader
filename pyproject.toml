@@ -1,8 +1,16 @@
 [project]
 name = 'waf_downloader'
 license = "Apache-2.0"
-description = "Cloudflare WAF logs downloader."
-keywords = ["python", "package", "template", "2024"]
+description = "Web Application Firewall logs downloader."
+keywords = [
+    "cloudflare",
+    "waf",
+    "web",
+    "application",
+    "firewall",
+    "logs",
+    "download",
+]
 readme = { "file" = "README.md", "content-type" = "text/markdown" }
 authors = [
     { name = "Mihai Bojin", email = "557584+MihaiBojin@users.noreply.github.com" },
@@ -10,12 +18,13 @@ authors = [
 dynamic = ["dependencies", "optional-dependencies", "version"]
 requires-python = ">=3.11"
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
     "Natural Language :: English",
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
 ] # https://pypi.org/classifiers/
 
 [project.urls]
@@ -63,6 +72,7 @@ path = "./VERSION"
 pattern = "(?P<version>.+)"
 
 [tool.mypy]
+# keep-sorted start
 check_untyped_defs = true
 disallow_untyped_calls = true
 namespace_packages = false
@@ -71,6 +81,7 @@ show_column_numbers = true
 show_error_codes = true
 warn_no_return = false
 warn_unused_ignores = true
+# keep-sorted end
 
 [[tool.mypy.overrides]]
 module = 'requests.*'

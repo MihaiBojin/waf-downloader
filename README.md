@@ -5,6 +5,8 @@
 [![Python Versions](https://img.shields.io/pypi/pyversions/waf-downloader.svg)](https://pypi.org/project/waf-downloader/)
 [![License](https://img.shields.io/github/license/waf-downloader/waf-downloader.svg)](LICENSE)
 
+A library, CLI, and docker image that downloads Cloudflare WAF logs for a specified zone_id and time frame.
+
 ## Schema
 
 See [src/waf_logs/resources/db/](./src/waf_logs/resources/db) for a list of schemas that are auto-applied at start. This can be disabled by passing `--ensure_schema False`.
