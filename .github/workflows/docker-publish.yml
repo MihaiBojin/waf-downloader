@@ -38,10 +38,11 @@ jobs:
           source "scripts/functions.bash"
           PROJECT_NAME="$(get_project_name)"
           TAG="$(get_tag_at_head)"
+          OWNER="$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')"
           make docker
-          docker tag "$PROJECT_NAME:$TAG" ghcr.io/${{ github.repository }}/$PROJECT_NAME:${{ github.sha }}
-          docker tag "$PROJECT_NAME:$TAG" ghcr.io/${{ github.repository }}/$PROJECT_NAME:$TAG
-          docker tag "$PROJECT_NAME:$TAG" ghcr.io/${{ github.repository }}/$PROJECT_NAME:latest
+          docker tag "$PROJECT_NAME:$TAG" ghcr.io/$OWNER/$PROJECT_NAME:${{ github.sha }}
+          docker tag "$PROJECT_NAME:$TAG" ghcr.io/$OWNER/$PROJECT_NAME:$TAG
+          docker tag "$PROJECT_NAME:$TAG" ghcr.io/$OWNER/$PROJECT_NAME:latest
 
       - name: Push Docker image to GitHub Container Registry
         run: |
@@ -49,6 +50,7 @@ jobs:
           source "scripts/functions.bash"
           PROJECT_NAME="$(get_project_name)"
           TAG="$(get_tag_at_head)"
-          docker push ghcr.io/${{ github.repository }}/$PROJECT_NAME:${{ github.sha }}
-          docker push ghcr.io/${{ github.repository }}/$PROJECT_NAME:$TAG
-          docker push ghcr.io/${{ github.repository }}/$PROJECT_NAME:latest
+          OWNER="$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')"
+          docker push ghcr.io/$OWNER/$PROJECT_NAME:${{ github.sha }}
+          docker push ghcr.io/$OWNER/$PROJECT_NAME:$TAG
+          docker push ghcr.io/$OWNER/$PROJECT_NAME:latest
