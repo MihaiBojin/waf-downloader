@@ -1,0 +1,41 @@
+name: Publish Docker Image to GitHub Container Registry
+
+on:
+  # Trigger only on v0.* tag pushes
+  push:
+    tags:
+      - "v0.*"
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          logout: true
+
+      - name: Build Docker image
+        run: |
+          source "scripts/functions.bash"
+          PROJECT_NAME="$(get_project_name)"
+          TAG="$(get_tag_at_head)"
+          make docker
+          docker tag "$PROJECT_NAME:$TAG" ghcr.io/${{ github.repository }}/$PROJECT_NAME:${{ github.sha }}
+          docker tag "$PROJECT_NAME:$TAG" ghcr.io/${{ github.repository }}/$PROJECT_NAME:$TAG
+          docker tag "$PROJECT_NAME:$TAG" ghcr.io/${{ github.repository }}/$PROJECT_NAME:latest
+
+      - name: Push Docker image to GitHub Container Registry
+        run: |
+          source "scripts/functions.bash"
+          PROJECT_NAME="$(get_project_name)"
+          TAG="$(get_tag_at_head)"
+          docker push ghcr.io/${{ github.repository }}/$PROJECT_NAME:${{ github.sha }}
+          docker push ghcr.io/${{ github.repository }}/$PROJECT_NAME:$TAG
+          docker push ghcr.io/${{ github.repository }}/$PROJECT_NAME:latest

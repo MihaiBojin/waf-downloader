@@ -1,4 +1,4 @@
-name: Publish to PyPI
+name: Publish Python Package to PyPI
 
 on:
   # Trigger only on v0.* tag pushes
@@ -9,11 +9,6 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
-
-    # disable the workflow by default
-    # uncomment when ready to publish to PyPI
-    if: false
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
