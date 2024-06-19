@@ -14,6 +14,7 @@ See [src/waf_logs/resources/db/](./src/waf_logs/resources/db) for a list of sche
 ## Quickstart
 
 The project is published to <https://pypi.org/project/waf-downloader/>.
+
 Install it via:
 
 ```shell
@@ -22,6 +23,15 @@ pip install waf-downloader
 # or alternatively, directly from git
 pip install "git+https://github.com/MihaiBojin/waf-downloader@main"
 ```
+
+Or with Docker:
+
+```shell
+docker pull ghcr.io/mihaibojin/waf-downloader:latest
+```
+
+The list of published images can be found at:
+<https://github.com/MihaiBojin/waf-downloader/pkgs/container/waf-downloader>
 
 ### Build and run with Docker
 
