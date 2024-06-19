@@ -21,8 +21,20 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
           logout: true
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Configuring developer tools
+        run: |
+          make create-venv
+          eval "$(make venv)"
+          make setup
+
       - name: Build Docker image
         run: |
+          eval "$(make venv)"
           source "scripts/functions.bash"
           PROJECT_NAME="$(get_project_name)"
           TAG="$(get_tag_at_head)"
@@ -33,6 +45,7 @@ jobs:
 
       - name: Push Docker image to GitHub Container Registry
         run: |
+          eval "$(make venv)"
           source "scripts/functions.bash"
           PROJECT_NAME="$(get_project_name)"
           TAG="$(get_tag_at_head)"
