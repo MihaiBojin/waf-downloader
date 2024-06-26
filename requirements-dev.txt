@@ -1,6 +1,7 @@
 # DEV requirements
 # keep-sorted start
 build == 1.2.1
+importlib-metadata==7.2.1 # remove when https://github.com/pypa/twine/issues/1125 is closed
 pre-commit == 3.7.1
 pytest ==8.2.2
 toml == 0.10.2
