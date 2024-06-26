@@ -25,8 +25,9 @@ venv:
 .PHONY: setup
 setup:
 	@echo "Setting up repo for development"
+	@python -m pip install -e ".[dev]"
 	@scripts/uninstall-package.bash
-	@pip install -e ".[cli,dev]"
+	@python -m pip install -e ".[cli,dev]"
 	@pre-commit install --install-hooks
 	@touch .env
 
