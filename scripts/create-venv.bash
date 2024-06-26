@@ -11,7 +11,7 @@ if [ -d "$VENV" ]; then
     echo "Directory already exists: $VENV" >&2
     echo "Will not recreate it." >&2
     echo
-    exit 1
+    exit 0
 fi
 
 PYTHON=python
