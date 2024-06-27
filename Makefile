@@ -22,12 +22,16 @@ create-venv:
 venv:
 	@echo "source venv/bin/activate"
 
-.PHONY: setup
-setup:
-	@echo "Setting up repo for development"
-	@python -m pip install -e ".[dev]"
+.PHONY: install
+install:
+	@echo "Installing packages in editable mode..."
+	@python -m pip install -e ".[dev]" # toml
 	@scripts/uninstall-package.bash
 	@python -m pip install -e ".[cli,dev]"
+
+.PHONY: setup
+setup: install
+	@echo "Setting up repo for local development..."
 	@pre-commit install --install-hooks
 	@touch .env
 
