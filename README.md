@@ -3,7 +3,7 @@
 ![Build Status](https://github.com/MihaiBojin/waf-downloader/actions/workflows/python-tests.yml/badge.svg)
 [![PyPI version](https://badge.fury.io/py/waf-downloader.svg)](https://badge.fury.io/py/waf-downloader)
 [![Python Versions](https://img.shields.io/pypi/pyversions/waf-downloader.svg)](https://pypi.org/project/waf-downloader/)
-[![License](https://img.shields.io/github/license/waf-downloader/waf-downloader.svg)](LICENSE)
+[![License](https://img.shields.io/github/license/MihaiBojin/waf-downloader.svg)](LICENSE)
 
 A library, CLI, and docker image that downloads Cloudflare WAF logs for a specified zone_id and time frame.
 
@@ -13,7 +13,7 @@ See [src/waf_logs/resources/db/](./src/waf_logs/resources/db) for a list of sche
 
 ## Quickstart
 
-The project is published to <https://pypi.org/project/waf-downloader/>.
+The project is published at <https://pypi.org/project/waf-downloader/>.
 
 Install it via:
 
