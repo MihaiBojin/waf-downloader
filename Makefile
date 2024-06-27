@@ -1,5 +1,9 @@
 SHELL := /bin/bash
 
+.PHONY: venv
+venv:
+	@echo "source venv/bin/activate"
+
 .PHONY: clean
 clean: clean-venv
 	@echo Cleaning up builds and caches...
@@ -17,10 +21,6 @@ clean-venv:
 create-venv:
 	@echo "Creating virtualenv..."
 	@scripts/create-venv.bash
-
-.PHONY: venv
-venv:
-	@echo "source venv/bin/activate"
 
 .PHONY: install
 install:

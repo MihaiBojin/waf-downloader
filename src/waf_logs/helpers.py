@@ -1,5 +1,5 @@
 from datetime import timedelta, datetime, timezone
-import importlib
+from importlib import resources
 from pathlib import Path
 from typing import List, Optional
 
@@ -50,7 +50,7 @@ def read_file(from_path: str, package_name: Optional[str] = None) -> str:
     # If a package, retrieve path first
     data_path = from_path
     if package_name is not None:
-        data_path = str(importlib.resources.files(package_name).joinpath(from_path))
+        data_path = str(resources.files(package_name).joinpath(from_path))
 
     return read_text(data_path)
 
@@ -60,7 +60,7 @@ def list_files(from_path: str, package_name: Optional[str] = None) -> List[str]:
 
     # If a package, retrieve path first
     if package_name is not None:
-        data_path = importlib.resources.files(package_name) / from_path
+        data_path = resources.files(package_name) / from_path
         return sorted([entry.name for entry in data_path.iterdir() if entry.is_file()])
 
     return sorted(
