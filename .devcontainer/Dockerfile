@@ -17,8 +17,7 @@ RUN scversion="stable" && \
     shellcheck --version
 
 # Install taskfile
-RUN sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d && \
-    cp ./bin/task /usr/bin/ && \
+RUN sh -c "$(wget -qO- https://taskfile.dev/install.sh)" -- -d && \
     task --version
 
 USER vscode

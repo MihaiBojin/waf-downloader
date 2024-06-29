@@ -49,13 +49,13 @@ Build and run:
 
 ```shell
 # Build
-make docker
+task docker
 
 # Load all logs in zone, starting 5 minutes prior
-make docker-run ARGS="--zone_id [CLOUDFLARE_ZONE_ID] --start_minutes_ago -5"
+task docker-run ARGS="--zone_id [CLOUDFLARE_ZONE_ID] --start_minutes_ago -5"
 
 # And alternatively, only output the logs
-make docker-run ARGS="--zone_id [CLOUDFLARE_ZONE_ID] --start_minutes_ago -5" 2>/dev/null
+task docker-run ARGS="--zone_id [CLOUDFLARE_ZONE_ID] --start_minutes_ago -5" 2>/dev/null
 ```
 
 ## Publishing to PyPI
@@ -84,19 +84,19 @@ export PYPI_PASSWORD=... # token for https://upload.pypi.org/legacy/
 First, publish to the test repo and inspect the package:
 
 ```shell
-make publish-test
+task publish-test
 ```
 
 If correct, distribute the wheel to the PyPI index:
 
 ```shell
-make publish
+task publish
 ```
 
 Verify the distributed code
 
 ```shell
-make publish-verify
+task publish-verify
 ```
 
 ## Cloudflare WAF documentation

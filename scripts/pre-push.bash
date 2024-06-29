@@ -9,18 +9,18 @@ pushd "$DIR/.." >/dev/null 2>&1 || (echo "Could not set working directory" && ex
 
 if [ -z "${VIRTUAL_ENV:-}" ]; then
     echo "Virtual env not found, activating default venv..."
-    eval "$(make venv)"
+    eval "$(task venv)"
 fi
 
 echo "Running linters..."
-make lint
+task lint
 
 echo "Running tests..."
-make test
+task test
 
 echo "Ensuring the app can be built..."
-make build
-make docker
+task build
+task build-docker
 
 popd >/dev/null 2>&1
 echo "Pre-push checks passed."

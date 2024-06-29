@@ -33,7 +33,7 @@ echo "Updating version in '$VERSION_FILE' to: $VERSION"
 echo "$VERSION" >"$VERSION_FILE"
 
 echo "Building $PROJECT_NAME:$TAG..."
-if ! make build; then
+if ! task build; then
     # Revert the version file if erroring out
     echo "Reverting version to repository value..."
     git checkout -- "$VERSION_FILE"
