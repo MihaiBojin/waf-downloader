@@ -26,21 +26,27 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Install Task
+        uses: arduino/setup-task@v1
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Install dependencies
         working-directory: .
         run: |
-          make create-venv
-          eval "$(make venv)"
-          make install
+          task create-venv
+          eval "$(task venv)"
+          task install
 
       - name: Run linters
         working-directory: .
         run: |
-          eval "$(make venv)"
-          make lint
+          eval "$(task venv)"
+          task lint
 
       - name: Run tests
         working-directory: .
         run: |
-          eval "$(make venv)"
+          eval "$(task venv)"
           pytest tests

@@ -1,3 +1,6 @@
+#
+# Deprecated; use Taskfile.yml (https://taskfile.dev)
+#
 SHELL := /bin/bash
 
 .PHONY: venv

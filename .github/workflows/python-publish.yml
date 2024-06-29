@@ -25,20 +25,20 @@ jobs:
       - name: Install dependencies
         working-directory: .
         run: |
-          make create-venv
-          eval "$(make venv)"
-          make install
+          task create-venv
+          eval "$(task venv)"
+          task install
 
       - name: Run linters
         working-directory: .
         run: |
-          eval "$(make venv)"
-          make lint
+          eval "$(task venv)"
+          task lint
 
       - name: Run tests
         working-directory: .
         run: |
-          eval "$(make venv)"
+          eval "$(task venv)"
           pytest tests
 
   publish:
@@ -56,9 +56,9 @@ jobs:
       - name: Install dependencies
         working-directory: .
         run: |
-          make create-venv
-          eval "$(make venv)"
-          make install
+          task create-venv
+          eval "$(task venv)"
+          task install
 
       - name: Set the correct (tag) version
         working-directory: .
@@ -68,24 +68,24 @@ jobs:
       - name: Build
         working-directory: .
         run: |
-          eval "$(make venv)"
-          make build
+          eval "$(task venv)"
+          task build
 
       - name: Publish package to test repository
         env:
           TESTPYPI_PASSWORD: ${{ secrets.TESTPYPI_PASSWORD }}
         working-directory: .
         run: |
-          eval "$(make venv)"
-          make publish-test
+          eval "$(task venv)"
+          task publish-test
 
       - name: Publish package
         env:
           PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
         working-directory: .
         run: |
-          eval "$(make venv)"
-          make publish
+          eval "$(task venv)"
+          task publish
 
       - name: Waiting 30 seconds for the PyPI indexes to be updated
         run: sleep 30
@@ -93,5 +93,5 @@ jobs:
       - name: Verify package install from PyPI
         working-directory: .
         run: |
-          eval "$(make venv)"
-          make publish-verify
+          eval "$(task venv)"
+          task publish-verify
