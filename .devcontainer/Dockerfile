@@ -16,4 +16,9 @@ RUN scversion="stable" && \
     cp "shellcheck-${scversion}/shellcheck" /usr/bin/ && \
     shellcheck --version
 
+# Install taskfile
+RUN sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d && \
+    cp ./bin/task /usr/bin/ && \
+    task --version
+
 USER vscode
