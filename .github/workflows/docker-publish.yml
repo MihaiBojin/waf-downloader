@@ -39,7 +39,7 @@ jobs:
           PROJECT_NAME="$(get_project_name)"
           TAG="$(get_tag_at_head)"
           OWNER="$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')"
-          task build-docker
+          task docker-build
           docker tag "$PROJECT_NAME:$TAG" ghcr.io/$OWNER:${{ github.sha }}
           docker tag "$PROJECT_NAME:$TAG" ghcr.io/$OWNER:$TAG
           docker tag "$PROJECT_NAME:$TAG" ghcr.io/$OWNER:latest

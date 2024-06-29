@@ -20,7 +20,7 @@ task test
 
 echo "Ensuring the app can be built..."
 task build
-task build-docker
+task docker-build
 
 popd >/dev/null 2>&1
 echo "Pre-push checks passed."

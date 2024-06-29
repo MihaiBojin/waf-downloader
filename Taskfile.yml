@@ -2,9 +2,6 @@
 # yaml-language-server: $schema=https://taskfile.dev/schema.json
 version: "3"
 
-vars:
-  GREETING: Hello, World!
-
 silent: true
 
 tasks:
@@ -76,7 +73,7 @@ tasks:
       - echo "Inspecting archive..."
       - tar -tf "dist/{{.PROJECT_NAME}}-$(cat VERSION).tar.gz"
 
-  build-docker:
+  docker-build:
     cmds:
       - echo
       - echo "Building Dockerfile..."

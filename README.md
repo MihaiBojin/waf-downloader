@@ -45,11 +45,12 @@ DB_CONN_STR=...
 The Cloudflare token is required, but the connection string is optional.
 If skipped, it will result in logs being printed to stdout.
 
-Build and run:
+IMPORTANT: This project uses [taskfile.dev](https://taskfile.dev/installation/),
+which you will need to install for running the following commands:
 
 ```shell
 # Build
-task docker
+task docker-build
 
 # Load all logs in zone, starting 5 minutes prior
 task docker-run ARGS="--zone_id [CLOUDFLARE_ZONE_ID] --start_minutes_ago -5"
