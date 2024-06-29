@@ -28,25 +28,25 @@ jobs:
 
       - name: Configuring developer tools
         run: |
-          make create-venv
-          eval "$(make venv)"
-          make setup
+          task create-venv
+          eval "$(task venv)"
+          task setup
 
       - name: Build Docker image
         run: |
-          eval "$(make venv)"
+          eval "$(task venv)"
           source "scripts/functions.bash"
           PROJECT_NAME="$(get_project_name)"
           TAG="$(get_tag_at_head)"
           OWNER="$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')"
-          make docker
+          task build-docker
           docker tag "$PROJECT_NAME:$TAG" ghcr.io/$OWNER:${{ github.sha }}
           docker tag "$PROJECT_NAME:$TAG" ghcr.io/$OWNER:$TAG
           docker tag "$PROJECT_NAME:$TAG" ghcr.io/$OWNER:latest
 
       - name: Push Docker image to GitHub Container Registry
         run: |
-          eval "$(make venv)"
+          eval "$(task venv)"
           source "scripts/functions.bash"
           PROJECT_NAME="$(get_project_name)"
           TAG="$(get_tag_at_head)"
