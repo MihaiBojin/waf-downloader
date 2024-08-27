@@ -9,7 +9,8 @@ A library, CLI, and docker image that downloads Cloudflare WAF logs for a specif
 
 ## Schema
 
-See [src/waf_logs/resources/db/](./src/waf_logs/resources/db) for a list of schemas that are auto-applied at start. This can be disabled by passing `--ensure_schema False`.
+See [src/waf_logs/resources/db/](./src/waf_logs/resources/db) for a list of schemas that are auto-applied at start.
+This can be disabled by passing `--ensure_schema False`.
 
 ## Quickstart
 
@@ -104,3 +105,4 @@ task publish-verify
 
 - <https://developers.cloudflare.com/analytics/graphql-api/tutorials/querying-firewall-events>
 - <https://developers.cloudflare.com/analytics/graphql-api/tutorials/export-graphql-to-csv/>
+- 
