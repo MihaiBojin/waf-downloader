@@ -5,7 +5,7 @@ Cloudflare WAF logs downloader
 """
 
 import argparse
-from datetime import datetime
+from datetime import datetime, timezone
 import multiprocessing
 import os
 import sys
@@ -15,6 +15,24 @@ from dotenv import load_dotenv
 
 from waf_logs.downloader import DatabaseOutput, DebugOutput, Output, download_loop
 from waf_logs.helpers import compute_time
+
+
+def perform_download(
+    zone_id: str, token: str, start_time: datetime, sink: Output
+) -> datetime:
+    t0 = time.time()
+    print("Downloading WAF logs...", file=sys.stderr)
+    end_time = download_loop(
+        zone_id=zone_id,
+        token=token,
+        queries=["get_firewall_events", "get_firewall_events_ext"],
+        start_time=start_time,
+        sink=sink,
+    )
+    t1 = time.time() - t0
+    print(f"Completed download after {t1:.2f} seconds", file=sys.stderr)
+
+    return end_time
 
 
 def main() -> None:
@@ -65,6 +83,19 @@ def main() -> None:
         default=True,
         help="If True, the execution will re-apply all schema files",
     )
+    parser.add_argument(
+        "--follow",
+        action="store_true",
+        help="If this flag is specified, the process will not exit and instead keep downloading new logs forever",
+    )
+    parser.add_argument(
+        "--sleep_interval_minutes",
+        type=int,
+        required=False,
+        default=1,
+        help="Sleep for that many minutes between each download loop; defaults to 1 minute",
+    )
+
     args = parser.parse_args()
     zone_id = args.zone_id
 
@@ -85,6 +116,9 @@ def main() -> None:
     )
     chunk_size = args.chunk_size
     ensure_schema = args.ensure_schema
+
+    do_follow = args.follow
+    sleep_interval = args.sleep_interval_minutes * 60
 
     # Get Cloudflare settings
     token = os.getenv("CLOUDFLARE_TOKEN")
@@ -109,17 +143,31 @@ def main() -> None:
             chunk_size=chunk_size,
         )
 
-    t0 = time.time()
-    print("Downloading WAF logs...", file=sys.stderr)
-    download_loop(
-        zone_id=zone_id,
-        token=token,
-        queries=["get_firewall_events", "get_firewall_events_ext"],
-        start_time=start_time,
-        sink=sink,
-    )
-    t1 = time.time() - t0
-    print(f"Completed after {t1:.2f} seconds", file=sys.stderr)
+    if do_follow:
+        print(
+            f"Starting to download logs every {sleep_interval/60:.0f} minutes",
+            file=sys.stderr,
+        )
+        while True:
+            t0 = datetime.now(tz=timezone.utc)
+            start_time = perform_download(zone_id, token, start_time, sink)
+            duration = start_time - t0
+            print(f"Downloaded up to timestamp: {start_time}", file=sys.stderr)
+
+            # If the duration approaches the sleep interval, skip the sleep to allow the process to catch-up
+            if duration.total_seconds() > sleep_interval * 0.8:
+                print(
+                    f"[WARN] Download completed in {duration.strftime(' %H:%M:%S')}, skipping sleep",
+                    file=sys.stderr,
+                )
+            else:
+                print(
+                    f"Sleeping for {sleep_interval/60:.2f} minutes",
+                    file=sys.stderr,
+                )
+                time.sleep(sleep_interval)
+    else:
+        perform_download(zone_id, token, start_time, sink)
 
 
 if __name__ == "__main__":

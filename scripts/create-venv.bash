@@ -15,14 +15,14 @@ if [ -d "$VENV" ]; then
 fi
 
 PYTHON=
-if command -v python >/dev/null 2>&1; then
-    PYTHON="python"
-elif command -v python3.12 >/dev/null 2>&1; then
+if command -v python3.12 >/dev/null 2>&1; then
     PYTHON="python3.12"
 elif command -v python3.11 >/dev/null 2>&1; then
     PYTHON="python3.11"
 elif command -v python3 >/dev/null 2>&1; then
     PYTHON="python3"
+elif command -v python >/dev/null 2>&1; then
+    PYTHON="python"
 else
     echo "Could not find python interpreter on PATH" >&2
     echo

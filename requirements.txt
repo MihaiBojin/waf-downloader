@@ -2,6 +2,8 @@
 # keep-sorted start
 boto3==1.35.21
 more_itertools==10.5.0
-psycopg2-binary==2.9.9
+psycopg-binary==3.2.2
+psycopg==3.2.2
+psycopg_pool==3.2.2
 requests==2.32.3
 # keep-sorted end

@@ -1,5 +1,8 @@
 # CLI requirements
 # keep-sorted start
 argparse==1.4.0
+# psycopg==3.2.2
+# psycopg-binary==3.2.2
+# psycopg_pool==3.2.2
 python-dotenv==1.0.1
 # keep-sorted end
