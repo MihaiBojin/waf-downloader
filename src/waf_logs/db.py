@@ -3,7 +3,8 @@ import sys
 import threading
 import time
 from typing import Any, Callable, List
-from psycopg2 import pool
+
+from psycopg_pool import ConnectionPool
 
 from waf_logs import WAF
 from waf_logs.helpers import list_files, read_file, validate_name
@@ -24,16 +25,18 @@ class Database:
     def __del__(self):
         # Close all connections in the pool
         if self.connection_pool and not self.connection_pool.closed:
-            self.connection_pool.closeall()
+            self.connection_pool.close()
         print("Connection pool destroyed", file=sys.stderr)
 
-    def pool(self) -> pool.SimpleConnectionPool:
+    def pool(self) -> ConnectionPool:
         if not self.connection_pool or self.connection_pool.closed:
             with self.lock:
-                self.connection_pool = pool.SimpleConnectionPool(
-                    1,  # Minimum number of connections in the pool
-                    self.max_pool_size,  # Maximum number of connections in the pool
-                    self.connection_string,
+                self.connection_pool = ConnectionPool(
+                    conninfo=self.connection_string,
+                    min_size=1,  # Minimum number of connections in the pool
+                    max_size=self.max_pool_size,  # Maximum number of connections in the pool
+                    max_idle=300,  # Maximum idle time for a connection
+                    max_lifetime=300,  # Maximum lifetime for a connection
                 )
 
                 # Check if the pool was created successfully
@@ -50,7 +53,7 @@ class Database:
         # Get a connection from the pool
         conn = None
         try:
-            p: pool.SimpleConnectionPool = self.pool()
+            p: ConnectionPool = self.pool()
             conn = p.getconn()
 
             return func(conn)
@@ -102,7 +105,9 @@ class Database:
         return _execute
 
     @staticmethod
-    def insert_bulk(data: List[WAF], table_name: str) -> Callable[[Any], Any]:
+    def insert_bulk(
+        data: List[WAF], table_name: str, max_retries: int = 3
+    ) -> Callable[[Any], Any]:
         """Inserts a chunk of records in bulk, into the specified table."""
 
         validate_name(table_name)
@@ -113,14 +118,14 @@ class Database:
             return (
                 data.rayName,
                 data.datetime,
-                json.dumps(data),
+                json.dumps(data.data),
             )
 
         # Convert data to insertion format
         rows = [_to_row(d) for d in data]
 
         def insert_rows(conn: Any) -> Any:
-            """Bulk inserts the specified 'rows'"""
+            """Bulk inserts the specified 'rows' with a retry mechanism"""
             t0 = time.time()
 
             # Create a cursor object
@@ -134,10 +139,28 @@ class Database:
                 ;
                 """
 
-                cur.executemany(insert_query, rows)
+                for attempt in range(max_retries):
+                    try:
+                        cur.executemany(
+                            query=insert_query, params_seq=rows, returning=True
+                        )
+                        conn.commit()
 
-                # Commit the transaction
-                conn.commit()
+                        if cur.rowcount != -1:
+                            break
+                        print(
+                            f"Cursor returned -1, retrying (attempt {attempt + 1}/{max_retries})",
+                            file=sys.stderr,
+                        )
+                    except Exception as e:
+                        print(
+                            f"Exception: {e}, retrying (attempt {attempt + 1}/{max_retries})",
+                            file=sys.stderr,
+                        )
+                        time.sleep(1)
+                        conn.rollback()  # Roll back the transaction before retrying
+                else:
+                    print("Max retries reached, insert chunk failed", file=sys.stderr)
 
             finally:
                 # Close the cursor

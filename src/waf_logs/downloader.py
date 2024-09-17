@@ -71,10 +71,10 @@ class DatabaseOutput(Output):
             )
 
             # Print stats and approximate duration
-            duration, rows_inserted, all_rows, total_bytes = results
-            row_per_sec = rows_inserted / duration
+            duration, _, all_rows, total_bytes = results
+            row_per_sec = all_rows / duration
             print(
-                f"Inserted {rows_inserted}/{all_rows} new records into {self.table_name} ({total_bytes:,} bytes) in {duration:.2f} seconds [{row_per_sec:.0f} rows/s]",
+                f"Inserted {all_rows} records into {self.table_name} ({total_bytes:,} bytes) in {duration:.2f} seconds [{row_per_sec:.0f} rows/s]",
                 file=sys.stderr,
             )
             return results
@@ -100,7 +100,7 @@ class DatabaseOutput(Output):
         rows_per_sec = len(result.logs) / t1
         bytes_per_sec = total_bytes / t1
         print(
-            f"Completed after {t1:.2f} seconds ({rows_per_sec:,.0f} rows/sec; {bytes_per_sec:,.0f} bytes/sec).",
+            f"Completed inserting after {t1:.2f} seconds ({rows_per_sec:,.0f} rows/sec; {bytes_per_sec:,.0f} bytes/sec).",
             file=sys.stderr,
         )
 
@@ -152,7 +152,7 @@ def download_loop(
     queries: List[str],
     start_time: datetime,
     sink: Output,
-):
+) -> datetime:
     """Loops and downloads all the logs in the configured interval."""
 
     # Default to a past NN%5 minute to increase the chance of missing events due to lag
@@ -174,6 +174,8 @@ def download_loop(
 
     # Store results
     sink.save(result)
+
+    return end_time
 
 
 def compute_next_window(
