@@ -18,7 +18,8 @@ def compute_time(at: Optional[datetime], delta_by_minutes: int = 0) -> datetime:
     # Further round down to :xx:00
     target = target.replace(second=0, microsecond=0)
 
-    # Substract the desired minute interval
+    # Add the desired minute interval
+    # If delta_by_minutes is negative, this will add a negative interval, i.e., point the time to the past
     target += timedelta(minutes=delta_by_minutes)
 
     return target

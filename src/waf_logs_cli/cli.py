@@ -61,7 +61,7 @@ def main() -> None:
         type=int,
         required=False,
         help="A relative duration, specified in minutes, from which to start downloading logs."
-        "For example, if --start_minutes_ago=-5, the script will download events more recent than 5 minutes ago."
+        "For example, if --start_minutes_ago=5, the script will download events more recent than 5 minutes ago."
         "This is mutually exclusive with --start_time.",
     )
     parser.add_argument(
@@ -104,11 +104,9 @@ def main() -> None:
         parser.error("One of '--start_time' or '--start_minutes_ago' must be provided.")
     start_time = args.start_time
     if args.start_minutes_ago is not None:
-        if args.start_minutes_ago > 0:
-            parser.error(
-                "--start_minutes_ago must be negative as the starting time cannot be in the future."
-            )
-        start_time = compute_time(at=None, delta_by_minutes=args.start_minutes_ago)
+        if args.start_minutes_ago < 0:
+            parser.error("--start_minutes_ago must be a positive number.")
+        start_time = compute_time(at=None, delta_by_minutes=-args.start_minutes_ago)
 
     # Auto-detect available cores, if concurrency not explicitly set
     concurrency = (
