@@ -42,8 +42,8 @@ CLOUDFLARE_TOKEN=...
 DB_CONN_STR=...
 ```
 
-The Cloudflare token is required, but the connection string is optional.
-If skipped, it will result in logs being printed to stdout.
+The Cloudflare token is required (see [required permissions](https://developers.cloudflare.com/analytics/graphql-api/getting-started/authentication/api-token-auth/)),
+but the connection string is optional.  If skipped, it will result in logs being printed to stdout.
 
 IMPORTANT: This project uses [taskfile.dev](https://taskfile.dev/installation/),
 which you will need to install for running the following commands:
