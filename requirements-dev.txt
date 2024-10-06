@@ -1,6 +1,6 @@
 # DEV requirements
 # keep-sorted start
-build ==1.2.2
+build ==1.2.2.post1
 pip ==24.2
 pre-commit ==4.0.0
 pytest ==8.3.3
