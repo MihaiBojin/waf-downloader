@@ -2,9 +2,6 @@ name: Build and Publish Docker Image
 
 on:
   # Trigger only on v0.* tag pushes
-  pull_request:
-    branches:
-      - main
   push:
     tags:
       - "v0.*"
