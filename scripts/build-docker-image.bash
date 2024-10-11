@@ -47,7 +47,7 @@ git checkout -- "$VERSION_FILE"
 
 # Build the image
 echo "Building $PROJECT_NAME:$TAG for multiple platforms..."
-docker buildx build --load \
+docker buildx build --push \
     --platform linux/x86_64,linux/arm64 \
     --build-arg PROJECT_NAME="$PROJECT_NAME" \
     --build-arg VERSION="$VERSION" \
