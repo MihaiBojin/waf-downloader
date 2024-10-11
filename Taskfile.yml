@@ -11,13 +11,13 @@ tasks:
 
   clean-venv:
     cmds:
-      - echo "Deleting virtualenv..."
+      - echo "Deleting virtualenv..." >&2
       - scripts/delete-venv.bash
 
   clean:
     deps: [clean-venv]
     cmds:
-      - echo Cleaning up builds and caches...
+      - echo Cleaning up builds and caches... >&2
       - rm -rf {out,dist,build,.mypy_cache,.ruff_cache}
       - find . -type d -path ./venv -prune -o -name ".pytest_cache" -exec rm -rf {} \;
       - find . -type d -path ./venv -prune -o -name "__pycache__" -exec rm -rf {} \;
@@ -25,12 +25,12 @@ tasks:
 
   create-venv:
     cmds:
-      - echo "Creating virtualenv..."
+      - echo "Creating virtualenv..." >&2
       - scripts/create-venv.bash
 
   install:
     cmds:
-      - echo "Installing packages in editable mode..."
+      - echo "Installing packages in editable mode..." >&2
       - python -m pip install -e ".[dev]" # toml
       - scripts/uninstall-package.bash
       - python -m pip install -e ".[cli,dev]"
@@ -38,25 +38,25 @@ tasks:
   setup:
     deps: [install]
     cmds:
-      - echo "Setting up repo for local development..."
+      - echo "Setting up repo for local development..." >&2
       - pre-commit install --install-hooks
       - touch .env
 
   lint:
     cmds:
-      - echo "Running linters..."
+      - echo "Running linters..." >&2
       - pre-commit run --all-files
 
   test:
     cmds:
-      - echo "Running tests..."
+      - echo "Running tests..." >&2
       - pytest tests
 
   build:
     cmds:
-      - echo Cleaning up previous builds...
+      - echo Cleaning up previous builds... >&2
       - rm -rf dist/
-      - echo "Building..."
+      - echo "Building..." >&2
       - python -m build
 
   build-inspect:
@@ -65,19 +65,19 @@ tasks:
       PROJECT_NAME:
         sh: python -c "import toml; print(toml.load('pyproject.toml')['project']['name'])"
     cmds:
-      - echo
-      - echo "Inspecting wheel..."
+      - echo >&2
+      - echo "Inspecting wheel..." >&2
       - wheel2json "dist/{{.PROJECT_NAME}}-$(cat VERSION)-py3-none-any.whl"
 
-      - echo
-      - echo "Inspecting archive..."
+      - echo >&2
+      - echo "Inspecting archive..." >&2
       - tar -tf "dist/{{.PROJECT_NAME}}-$(cat VERSION).tar.gz"
 
   docker-build:
     cmds:
-      - echo
-      - echo "Building Dockerfile..."
-      - scripts/build-docker-image.bash
+      - echo >&2
+      - echo "Building Dockerfile..." >&2
+      - scripts/build-docker-image.bash {{.CLI_ARGS}}
 
   docker-run:
     cmds:
@@ -89,21 +89,21 @@ tasks:
     deps: [build]
     silent: false
     cmds:
-      - echo "Publishing to test repo..."
+      - echo "Publishing to test repo..." >&2
       - TWINE_PASSWORD="$TESTPYPI_PASSWORD" twine upload --repository-url https://test.pypi.org/legacy/ dist/\*
 
   publish-test-verify:
     cmds:
-      - echo "Verifying test.PyPI package..."
+      - echo "Verifying test.PyPI package..." >&2
       - scripts/verify-publish.bash --test
 
   publish:
     deps: [build]
     cmds:
-      - echo "Publishing to PyPI..."
+      - echo "Publishing to PyPI..." >&2
       - TWINE_PASSWORD="$PYPI_PASSWORD" twine upload dist/\*
 
   publish-verify:
     cmds:
-      - echo "Verifying PyPI package..."
+      - echo "Verifying PyPI package..." >&2
       - scripts/verify-publish.bash --prod
