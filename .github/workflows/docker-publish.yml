@@ -78,7 +78,7 @@ jobs:
             --push \
             --tag "ghcr.io/$OWNER_REPO:${{ github.sha }}" \
             --tag "ghcr.io/$OWNER_REPO:$TAG" \
-            --tag "ghcr.io/$OWNER_REPO:latest"
+            --tag "ghcr.io/$OWNER_REPO:latest" \
             --tag "docker.io/${{ vars.DOCKERHUB_USERNAME }}:$PROJECT_NAME:${{ github.sha }}" \
             --tag "docker.io/${{ vars.DOCKERHUB_USERNAME }}:$PROJECT_NAME:$TAG" \
             --tag "docker.io/${{ vars.DOCKERHUB_USERNAME }}:$PROJECT_NAME:latest"
