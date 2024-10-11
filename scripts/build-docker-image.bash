@@ -30,7 +30,7 @@ PROJECT_NAME="$(get_project_name)"
 readonly PROJECT_NAME
 
 # Parse command-line arguments
-PLATFORM="linux/arm64"
+PLATFORM="$(uname -s)/$(uname -m)"
 PUSH_FLAG=""
 LOAD_FLAG=""
 DOCKER_TAGS=()
