@@ -54,4 +54,5 @@ docker buildx build \
     --build-arg BUILDKIT_MULTI_PLATFORM=1 \
     -t "$PROJECT_NAME:$TAG" \
     .
-echo "Built $PROJECT_NAME:$TAG"
+echo "Built image $PROJECT_NAME:$TAG"
+echo

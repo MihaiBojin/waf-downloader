@@ -61,9 +61,9 @@ jobs:
           TAG="$(get_tag_at_head)"
           OWNER="$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')"
           task docker-build
-          docker tag "$PROJECT_NAME:$TAG" ghcr.io/$OWNER/$PROJECT_NAME:${{ github.sha }}
-          docker tag "$PROJECT_NAME:$TAG" ghcr.io/$OWNER/$PROJECT_NAME:$TAG
-          docker tag "$PROJECT_NAME:$TAG" ghcr.io/$OWNER/$PROJECT_NAME:latest
+          echo docker tag "$PROJECT_NAME:$TAG" ghcr.io/$OWNER/$PROJECT_NAME:${{ github.sha }}
+          echo docker tag "$PROJECT_NAME:$TAG" ghcr.io/$OWNER/$PROJECT_NAME:$TAG
+          echo docker tag "$PROJECT_NAME:$TAG" ghcr.io/$OWNER/$PROJECT_NAME:latest
 
       - name: Push Docker image to GitHub Container Registry
         id: push

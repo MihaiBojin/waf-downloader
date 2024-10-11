@@ -56,16 +56,13 @@ jobs:
         run: |
           eval "$(task venv)"
           task docker-build
-          echo docker tag "$PROJECT_NAME:$TAG" "${{ vars.DOCKERHUB_USERNAME }}:$PROJECT_NAME:${{ github.sha }}"
           docker tag "$PROJECT_NAME:$TAG" "${{ vars.DOCKERHUB_USERNAME }}:$PROJECT_NAME:${{ github.sha }}"
-
           docker tag "$PROJECT_NAME:$TAG" "${{ vars.DOCKERHUB_USERNAME }}:$PROJECT_NAME:$TAG"
           docker tag "$PROJECT_NAME:$TAG" "${{ vars.DOCKERHUB_USERNAME }}:$PROJECT_NAME:latest"
 
       - name: Push Docker image to GitHub Container Registry
         run: |
           eval "$(task venv)"
-          task docker-build
           docker push "${{ vars.DOCKERHUB_USERNAME }}:$PROJECT_NAME:${{ github.sha }}"
           docker push "${{ vars.DOCKERHUB_USERNAME }}:$PROJECT_NAME:$TAG"
           docker push "${{ vars.DOCKERHUB_USERNAME }}:$PROJECT_NAME:latest"
