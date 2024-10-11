@@ -33,7 +33,7 @@ readonly PROJECT_NAME
 PLATFORM="linux/arm64"
 PUSH_FLAG=""
 LOAD_FLAG=""
-DOCKER_TAG="$PROJECT_NAME:$TAG"
+DOCKER_TAGS=("$PROJECT_NAME:$TAG")
 while [[ $# -gt 0 ]]; do
     case $1 in
     --platform)
@@ -41,7 +41,7 @@ while [[ $# -gt 0 ]]; do
         shift 2
         ;;
     --tag)
-        DOCKER_TAG="$2"
+        DOCKER_TAGS+=("$2")
         shift 2
         ;;
     --push)
@@ -76,12 +76,12 @@ echo "Reverting version to repository value..."
 git checkout -- "$VERSION_FILE"
 
 # Build the image
-echo "Building $DOCKER_TAG for $PLATFORM..."
+echo "Building (${DOCKER_TAGS[*]})for $PLATFORM..."
 docker buildx build $PUSH_FLAG $LOAD_FLAG \
     --platform "$PLATFORM" \
     --build-arg PROJECT_NAME="$PROJECT_NAME" \
     --build-arg VERSION="$VERSION" \
-    -t "$DOCKER_TAG" \
+    $(for tag in "${DOCKER_TAGS[@]}"; do echo -n "-t $tag "; done) \
     .
 
 echo "Built image $DOCKER_TAG for $PLATFORM '$PUSH_FLAG' '$LOAD_FLAG'"

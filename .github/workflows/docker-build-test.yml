@@ -61,22 +61,17 @@ jobs:
 
           OWNER_REPO="$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" # format: org/repo
           IMAGE_NAME="ghcr.io/$OWNER_REPO:${{ github.sha }}"
-
-          task docker-build -- --platform linux/arm64,linux/x86_64 --push --tag "$IMAGE_NAME"
-
-          echo
-          echo "Tagging images..."
-
-          # git tag
           TAG="$(get_tag_at_head)"
-          if [ -n "$TAG" ]; then
-            docker tag "$IMAGE_NAME" ghcr.io/$OWNER_REPO:$TAG
-            docker push ghcr.io/$OWNER_REPO:$TAG
+          if [ -z "$TAG" ]; then
+            TAG="${{ github.sha }}"
           fi
 
-          # latest
-          docker tag "$IMAGE_NAME" ghcr.io/$OWNER_REPO:latest
-          docker push ghcr.io/$OWNER_REPO:latest
+          task docker-build -- \
+            --platform linux/arm64,linux/x86_64 \
+            --push \
+            --tag "$IMAGE_NAME" \
+            --tag "ghcr.io/$OWNER_REPO:$TAG" \
+            --tag "ghcr.io/$OWNER_REPO:latest"
 
           # digest
           DOCKER_DIGEST="$(docker images $IMAGE_NAME --format '{{.Digest}}')"
