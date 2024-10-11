@@ -74,7 +74,9 @@ jobs:
             --tag "ghcr.io/$OWNER_REPO:latest"
 
           # digest
+          docker images
           DOCKER_DIGEST="$(docker images $IMAGE_NAME --format '{{.Digest}}')"
+          echo "digest=${DOCKER_DIGEST}" >&2
           echo "digest=${DOCKER_DIGEST}" >> "$GITHUB_OUTPUT"
 
       - name: Generate artifact attestation
