@@ -1,0 +1,82 @@
+name: Publish Docker Image to GitHub Container Registry
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    permissions:
+      packages: write
+      contents: read
+      id-token: write
+      attestations: write
+
+    env:
+      REGISTRY: ghcr.io
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          logout: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Task
+        uses: arduino/setup-task@v1
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configuring developer tools
+        run: |
+          task create-venv
+          eval "$(task venv)"
+          task setup
+
+      - name: Build Docker image
+        run: |
+          eval "$(task venv)"
+          source "scripts/functions.bash"
+          PROJECT_NAME="$(get_project_name)"
+          TAG="$(get_tag_at_head)"
+          OWNER="$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')"
+          task docker-build
+          docker tag "$PROJECT_NAME:$TAG" ghcr.io/$OWNER/$PROJECT_NAME:${{ github.sha }}
+          docker tag "$PROJECT_NAME:$TAG" ghcr.io/$OWNER/$PROJECT_NAME:$TAG
+          docker tag "$PROJECT_NAME:$TAG" ghcr.io/$OWNER/$PROJECT_NAME:latest
+
+      - name: Push Docker image to GitHub Container Registry
+        id: push
+        run: |
+          eval "$(task venv)"
+          source "scripts/functions.bash"
+          PROJECT_NAME="$(get_project_name)"
+          TAG="$(get_tag_at_head)"
+          OWNER="$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')"
+          docker push ghcr.io/$OWNER:${{ github.sha }}
+          docker push ghcr.io/$OWNER:$TAG
+          docker push ghcr.io/$OWNER:latest
+
+          DOCKER_DIGEST="$(docker images $PROJECT_NAME:$TAG --format '{{.Digest}}')"
+          echo "digest=${DOCKER_DIGEST}" >> "$GITHUB_OUTPUT"
+
+      - name: Generate artifact attestation
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-name: ${{ env.REGISTRY }}/${{ github.repository }}
+          subject-digest: ${{ steps.push.outputs.digest }}
+          push-to-registry: true
