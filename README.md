@@ -5,7 +5,7 @@
 [![Python Versions](https://img.shields.io/pypi/pyversions/waf-downloader.svg)](https://pypi.org/project/waf-downloader/)
 [![License](https://img.shields.io/github/license/MihaiBojin/waf-downloader.svg)](LICENSE)
 
-A library, CLI, and docker image that downloads Cloudflare WAF logs for a specified zone_id and time frame.
+A library, CLI, and docker image that downloads Cloudflare WAF logs for a specified zone and time range.
 
 ## Schema
 
@@ -27,11 +27,15 @@ pip install "git+https://github.com/MihaiBojin/waf-downloader@main"
 Or with Docker:
 
 ```shell
-docker pull ghcr.io/mihaibojin/waf-downloader:latest
+docker pull docker.io/mihaibojin/waf-downloader:latest
 ```
 
 The list of published images can be found at:
 <https://github.com/MihaiBojin/waf-downloader/pkgs/container/waf-downloader>
+
+and
+
+<https://hub.docker.com/repository/docker/mihaibojin/waf-downloader/tags>
 
 ### Build and run with Docker
 
@@ -43,7 +47,7 @@ DB_CONN_STR=...
 ```
 
 The Cloudflare token is required (see [required permissions](https://developers.cloudflare.com/analytics/graphql-api/getting-started/authentication/api-token-auth/)),
-but the connection string is optional.  If skipped, it will result in logs being printed to stdout.
+but the connection string is optional. If skipped, it will result in logs being printed to stdout.
 
 IMPORTANT: This project uses [taskfile.dev](https://taskfile.dev/installation/),
 which you will need to install for running the following commands:
