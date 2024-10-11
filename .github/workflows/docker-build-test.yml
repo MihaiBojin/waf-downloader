@@ -69,12 +69,12 @@ jobs:
           task docker-build -- \
             --platform linux/arm64,linux/x86_64 \
             --push \
-            --load \
             --tag "$IMAGE_NAME" \
             --tag "ghcr.io/$OWNER_REPO:$TAG" \
             --tag "ghcr.io/$OWNER_REPO:latest"
 
           # digest
+          docker pull "$IMAGE_NAME"
           docker images
           DOCKER_DIGEST="$(docker images $IMAGE_NAME --format '{{.Digest}}')"
           echo "digest=${DOCKER_DIGEST}" >&2
