@@ -73,11 +73,8 @@ jobs:
             --tag "ghcr.io/$OWNER_REPO:$TAG" \
             --tag "ghcr.io/$OWNER_REPO:latest"
 
-          cat build/build-metadata.json
-
           # digest
-          set -vx
-          DOCKER_DIGEST="$(jq -r '.containerimage.digest' build/build-metadata.json)"
+          DOCKER_DIGEST="$(jq -r '.["containerimage.digest"]' build/build-metadata.json)"
           echo "digest=${DOCKER_DIGEST}" >&2
           echo "digest=${DOCKER_DIGEST}" >> "$GITHUB_OUTPUT"
 
