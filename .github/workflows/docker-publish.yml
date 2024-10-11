@@ -1,9 +1,13 @@
-name: Publish Docker Image to GitHub Container Registry
+name: Build and Publish Docker Image
 
 on:
+  # Trigger only on v0.* tag pushes
   pull_request:
     branches:
       - main
+  push:
+    tags:
+      - "v0.*"
 
 jobs:
   build-and-push:
@@ -14,9 +18,6 @@ jobs:
       contents: read
       id-token: write
       attestations: write
-
-    env:
-      REGISTRY: ghcr.io
 
     steps:
       - name: Checkout code
@@ -53,6 +54,13 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
           logout: true
 
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          registry: docker.io
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
       - name: Building and pushing Docker images
         id: build
         run: |
@@ -60,7 +68,6 @@ jobs:
           source "scripts/functions.bash"
 
           OWNER_REPO="$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" # format: org/repo
-          IMAGE_NAME="ghcr.io/$OWNER_REPO:${{ github.sha }}"
           TAG="$(get_tag_at_head)"
           if [ -z "$TAG" ]; then
             TAG="${{ github.sha }}"
@@ -69,18 +76,28 @@ jobs:
           task docker-build -- \
             --platform linux/arm64,linux/x86_64 \
             --push \
-            --tag "$IMAGE_NAME" \
+            --tag "ghcr.io/$OWNER_REPO:${{ github.sha }}" \
             --tag "ghcr.io/$OWNER_REPO:$TAG" \
             --tag "ghcr.io/$OWNER_REPO:latest"
+            --tag "docker.io/${{ vars.DOCKERHUB_USERNAME }}:$PROJECT_NAME:${{ github.sha }}" \
+            --tag "docker.io/${{ vars.DOCKERHUB_USERNAME }}:$PROJECT_NAME:$TAG" \
+            --tag "docker.io/${{ vars.DOCKERHUB_USERNAME }}:$PROJECT_NAME:latest"
 
           # digest
           DOCKER_DIGEST="$(jq -r '.["containerimage.digest"]' build/build-metadata.json)"
           echo "digest=${DOCKER_DIGEST}" >&2
           echo "digest=${DOCKER_DIGEST}" >> "$GITHUB_OUTPUT"
 
-      - name: Generate artifact attestation
+      - name: Generate artifact attestation for GitHub Container Registry
         uses: actions/attest-build-provenance@v1
         with:
-          subject-name: ${{ env.REGISTRY }}/${{ github.repository }}
+          subject-name: ghcr.io/${{ github.repository }}
+          subject-digest: ${{ steps.build.outputs.digest }}
+          push-to-registry: true
+
+      - name: Generate artifact attestation for Docker Hub
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-name: ghcr.io/${{ github.repository }}
           subject-digest: ${{ steps.build.outputs.digest }}
           push-to-registry: true
