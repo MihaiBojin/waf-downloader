@@ -52,7 +52,7 @@ jobs:
           PROJECT_NAME="$(get_project_name)"
           TAG="$(get_tag_or_sha)"
           OWNER="$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')"
-          task docker-build --platform linux/arm64,linux/x86_64 --push --tag ghcr.io/$OWNER/$PROJECT_NAME:${{ github.sha }}
+          task docker-build -- --platform linux/arm64,linux/x86_64 --push --tag ghcr.io/$OWNER/$PROJECT_NAME:${{ github.sha }}
           docker pull ghcr.io/$OWNER/$PROJECT_NAME:${{ github.sha }}
 
           echo
