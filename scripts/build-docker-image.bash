@@ -33,7 +33,7 @@ readonly PROJECT_NAME
 PLATFORM="linux/arm64"
 PUSH_FLAG=""
 LOAD_FLAG=""
-DOCKER_TAGS=("$PROJECT_NAME:$TAG")
+DOCKER_TAGS=()
 while [[ $# -gt 0 ]]; do
     case $1 in
     --platform)
@@ -58,6 +58,12 @@ while [[ $# -gt 0 ]]; do
         ;;
     esac
 done
+
+# If DOCKER_TAGS is empty, populate with default
+if [ ${#DOCKER_TAGS[@]} -eq 0 ]; then
+    echo "Setting default image tag: $PROJECT_NAME:$TAG" >&2
+    DOCKER_TAGS=("$PROJECT_NAME:$TAG")
+fi
 
 echo "Updating version in '$VERSION_FILE' to: $VERSION"
 echo "$VERSION" >"$VERSION_FILE"
