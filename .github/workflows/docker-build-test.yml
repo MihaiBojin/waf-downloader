@@ -74,12 +74,8 @@ jobs:
             --tag "ghcr.io/$OWNER_REPO:latest"
 
           # digest
-          docker pull "$IMAGE_NAME"
-          docker images
           set -vx
-          docker images $IMAGE_NAME --format '{{.Digest}}'
-
-          DOCKER_DIGEST="$(docker images $IMAGE_NAME --format '{{.Digest}}')"
+          DOCKER_DIGEST="$(jq -r '.containerimage.digest' build/build-metadata.json)"
           echo "digest=${DOCKER_DIGEST}" >&2
           echo "digest=${DOCKER_DIGEST}" >> "$GITHUB_OUTPUT"
 

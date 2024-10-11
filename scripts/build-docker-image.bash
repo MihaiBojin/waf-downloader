@@ -88,6 +88,7 @@ docker buildx build $PUSH_FLAG $LOAD_FLAG \
     --build-arg PROJECT_NAME="$PROJECT_NAME" \
     --build-arg VERSION="$VERSION" \
     $(for tag in "${DOCKER_TAGS[@]}"; do echo -n "-t $tag "; done) \
+    --metadata-file build/build-metadata.json \
     .
 
 echo
