@@ -46,8 +46,13 @@ echo "Reverting version to repository value..."
 git checkout -- "$VERSION_FILE"
 
 # Build the image
-docker build \
-    --build-arg PROJECT_NAME="$PROJECT_NAME" \
-    --build-arg VERSION="$VERSION" \
-    -t "$PROJECT_NAME:$TAG" \
-    .
+for ARCH in linux/x86_64 linux/arm64; do
+    docker build \
+        --build-arg PROJECT_NAME="$PROJECT_NAME" \
+        --build-arg VERSION="$VERSION" \
+        --platform "$ARCH" \
+        -t "$PROJECT_NAME:$TAG" \
+        .
+
+    echo "Built $PROJECT_NAME:$TAG for $ARCH..."
+done
