@@ -58,20 +58,22 @@ jobs:
         run: |
           eval "$(task venv)"
           source "scripts/functions.bash"
-          PROJECT_NAME="$(get_project_name)"
-          TAG="$(get_tag_or_sha)"
           OWNER="$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')"
-          task docker-build -- --platform linux/arm64,linux/x86_64 --push --tag ghcr.io/$OWNER/$PROJECT_NAME:${{ github.sha }}
-          docker pull ghcr.io/$OWNER/$PROJECT_NAME:${{ github.sha }}
+          PROJECT_NAME="$(get_project_name)"
+          IMAGE_NAME="ghcr.io/$OWNER/$PROJECT_NAME:${{ github.sha }}"
+
+          task docker-build -- --platform linux/arm64,linux/x86_64 --push --tag "$IMAGE_NAME"
 
           echo
           echo "Tagging images..."
-          docker tag "ghcr.io/$OWNER/$PROJECT_NAME:${{ github.sha }}" ghcr.io/$OWNER/$PROJECT_NAME:$TAG
+          TAG="$(get_tag_or_sha)"
+          docker tag "$IMAGE_NAME" ghcr.io/$OWNER/$PROJECT_NAME:$TAG
           docker push ghcr.io/$OWNER/$PROJECT_NAME:$TAG
-          docker tag "ghcr.io/$OWNER/$PROJECT_NAME:${{ github.sha }}" ghcr.io/$OWNER/$PROJECT_NAME:latest
+
+          docker tag "$IMAGE_NAME" ghcr.io/$OWNER/$PROJECT_NAME:latest
           docker push ghcr.io/$OWNER/$PROJECT_NAME:latest
 
-          DOCKER_DIGEST="$(docker images $PROJECT_NAME:$TAG --format '{{.Digest}}')"
+          DOCKER_DIGEST="$(docker images $IMAGE_NAME --format '{{.Digest}}')"
           echo "digest=${DOCKER_DIGEST}" >> "$GITHUB_OUTPUT"
 
       - name: Generate artifact attestation
