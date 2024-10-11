@@ -58,21 +58,27 @@ jobs:
         run: |
           eval "$(task venv)"
           source "scripts/functions.bash"
-          OWNER="$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')"
-          PROJECT_NAME="$(get_project_name)"
-          IMAGE_NAME="ghcr.io/$OWNER/$PROJECT_NAME:${{ github.sha }}"
+
+          OWNER_REPO="$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" # format: org/repo
+          IMAGE_NAME="ghcr.io/$OWNER_REPO:${{ github.sha }}"
 
           task docker-build -- --platform linux/arm64,linux/x86_64 --push --tag "$IMAGE_NAME"
 
           echo
           echo "Tagging images..."
-          TAG="$(get_tag_or_sha)"
-          docker tag "$IMAGE_NAME" ghcr.io/$OWNER/$PROJECT_NAME:$TAG
-          docker push ghcr.io/$OWNER/$PROJECT_NAME:$TAG
 
-          docker tag "$IMAGE_NAME" ghcr.io/$OWNER/$PROJECT_NAME:latest
-          docker push ghcr.io/$OWNER/$PROJECT_NAME:latest
+          # git tag
+          TAG="$(get_tag_at_head)"
+          if [ -n "$TAG" ]; then
+            docker tag "$IMAGE_NAME" ghcr.io/$OWNER_REPO:$TAG
+            docker push ghcr.io/$OWNER_REPO:$TAG
+          fi
 
+          # latest
+          docker tag "$IMAGE_NAME" ghcr.io/$OWNER_REPO:latest
+          docker push ghcr.io/$OWNER_REPO:latest
+
+          # digest
           DOCKER_DIGEST="$(docker images $IMAGE_NAME --format '{{.Digest}}')"
           echo "digest=${DOCKER_DIGEST}" >> "$GITHUB_OUTPUT"
 
