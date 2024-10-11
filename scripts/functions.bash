@@ -24,6 +24,18 @@ get_tag_at_head() {
     echo "${TAG#v}"
 }
 
+# Function to get either a git tag at HEAD (i.e., v.0.1.0) or the SHA (i.e., abc123)
+get_tag_or_sha() {
+    # Get the tag and remove the 'v' prefix
+    TAG="$(git tag --contains HEAD)"
+    TAG="${TAG#v}"
+    if [ -z "$TAG" ]; then
+        TAG="$(get_git_sha)"
+    fi
+
+    echo "$TAG"
+}
+
 # Extracts the project name as configured in 'pyproject.toml'
 get_project_name() {
     dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"

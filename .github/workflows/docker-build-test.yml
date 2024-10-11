@@ -58,12 +58,12 @@ jobs:
           eval "$(task venv)"
           source "scripts/functions.bash"
           PROJECT_NAME="$(get_project_name)"
-          TAG="$(get_tag_at_head)"
+          TAG="$(get_tag_or_sha)"
           OWNER="$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')"
           task docker-build
-          echo docker tag "$PROJECT_NAME:$TAG" ghcr.io/$OWNER/$PROJECT_NAME:${{ github.sha }}
-          echo docker tag "$PROJECT_NAME:$TAG" ghcr.io/$OWNER/$PROJECT_NAME:$TAG
-          echo docker tag "$PROJECT_NAME:$TAG" ghcr.io/$OWNER/$PROJECT_NAME:latest
+          docker tag "$PROJECT_NAME:$TAG" ghcr.io/$OWNER/$PROJECT_NAME:${{ github.sha }}
+          docker tag "$PROJECT_NAME:$TAG" ghcr.io/$OWNER/$PROJECT_NAME:$TAG
+          docker tag "$PROJECT_NAME:$TAG" ghcr.io/$OWNER/$PROJECT_NAME:latest
 
       - name: Push Docker image to GitHub Container Registry
         id: push
