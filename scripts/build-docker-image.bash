@@ -29,6 +29,36 @@ readonly TAG
 PROJECT_NAME="$(get_project_name)"
 readonly PROJECT_NAME
 
+# Parse command-line arguments
+PLATFORM="linux/arm64"
+PUSH_FLAG=""
+LOAD_FLAG=""
+DOCKER_TAG="$PROJECT_NAME:$TAG"
+while [[ $# -gt 0 ]]; do
+    case $1 in
+    --platform)
+        PLATFORM="$2"
+        shift 2
+        ;;
+    --tag)
+        DOCKER_TAG="$2"
+        shift 2
+        ;;
+    --push)
+        PUSH_FLAG="--push"
+        shift
+        ;;
+    --load)
+        LOAD_FLAG="--load"
+        shift
+        ;;
+    *)
+        echo "Unknown argument: $1" >&2
+        exit 1
+        ;;
+    esac
+done
+
 echo "Updating version in '$VERSION_FILE' to: $VERSION"
 echo "$VERSION" >"$VERSION_FILE"
 
@@ -46,13 +76,13 @@ echo "Reverting version to repository value..."
 git checkout -- "$VERSION_FILE"
 
 # Build the image
-echo "Building $PROJECT_NAME:$TAG for multiple platforms..."
-docker buildx build --push \
-    --platform linux/x86_64,linux/arm64 \
+echo "Building $DOCKER_TAG for $PLATFORM..."
+docker buildx build $PUSH_FLAG $LOAD_FLAG \
+    --platform "$PLATFORM" \
     --build-arg PROJECT_NAME="$PROJECT_NAME" \
     --build-arg VERSION="$VERSION" \
-    --build-arg BUILDKIT_MULTI_PLATFORM=1 \
-    -t "$PROJECT_NAME:$TAG" \
+    -t "$DOCKER_TAG" \
     .
-echo "Built image $PROJECT_NAME:$TAG"
+
+echo "Built image $DOCKER_TAG for $PLATFORM '$PUSH_FLAG' '$LOAD_FLAG'"
 echo
