@@ -76,6 +76,9 @@ jobs:
           # digest
           docker pull "$IMAGE_NAME"
           docker images
+          set -vx
+          docker images $IMAGE_NAME --format '{{.Digest}}'
+
           DOCKER_DIGEST="$(docker images $IMAGE_NAME --format '{{.Digest}}')"
           echo "digest=${DOCKER_DIGEST}" >&2
           echo "digest=${DOCKER_DIGEST}" >> "$GITHUB_OUTPUT"
