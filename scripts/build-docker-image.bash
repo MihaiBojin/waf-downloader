@@ -83,6 +83,7 @@ git checkout -- "$VERSION_FILE"
 
 # Build the image
 echo "Building (${DOCKER_TAGS[*]}) for $PLATFORM..."
+mkdir -p build
 docker buildx build $PUSH_FLAG $LOAD_FLAG \
     --platform "$PLATFORM" \
     --build-arg PROJECT_NAME="$PROJECT_NAME" \
