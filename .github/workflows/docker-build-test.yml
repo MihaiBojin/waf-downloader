@@ -69,6 +69,7 @@ jobs:
           task docker-build -- \
             --platform linux/arm64,linux/x86_64 \
             --push \
+            --load \
             --tag "$IMAGE_NAME" \
             --tag "ghcr.io/$OWNER_REPO:$TAG" \
             --tag "ghcr.io/$OWNER_REPO:latest"
