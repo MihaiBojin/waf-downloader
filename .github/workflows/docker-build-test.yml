@@ -45,6 +45,14 @@ jobs:
           eval "$(task venv)"
           task setup
 
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          logout: true
+
       - name: Build Docker image
         run: |
           eval "$(task venv)"
@@ -59,14 +67,6 @@ jobs:
           echo "Tagging images..."
           docker tag "ghcr.io/$OWNER/$PROJECT_NAME:${{ github.sha }}" ghcr.io/$OWNER/$PROJECT_NAME:$TAG
           docker tag "ghcr.io/$OWNER/$PROJECT_NAME:${{ github.sha }}" ghcr.io/$OWNER/$PROJECT_NAME:latest
-
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-          logout: true
 
       - name: Push Docker image to GitHub Container Registry
         id: push
