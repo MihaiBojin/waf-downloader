@@ -16,7 +16,9 @@
       // https://docs.github.com/en/codespaces/setting-up-your-project-for-codespaces/introduction-to-dev-containers#editor-settings-for-vs-code
       "settings": {
         "shellcheck.executablePath": "/usr/bin/shellcheck"
-      }
+      },
+      "extensions": [
+      ]
     }
   },
   // Use 'forwardPorts' to make a list of ports inside the container available locally.

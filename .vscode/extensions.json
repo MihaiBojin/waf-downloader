@@ -1,6 +1,7 @@
 {
     "recommendations": [
         // keep-sorted start
+        "AquaSecurityOfficial.trivy-vulnerability-scanner",
         "charliermarsh.ruff",
         "davidanson.vscode-markdownlint",
         "dbaeumer.vscode-eslint",
