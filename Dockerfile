@@ -25,7 +25,7 @@ COPY . /app
 RUN /usr/local/bin/task install
 RUN /usr/local/bin/task build
 
-FROM --platform=$BUILDPLATFORM python:3.13-slim
+FROM --platform=$BUILDPLATFORM python:3.13-alpine
 
 ENV PIP_DEFAULT_TIMEOUT=100 \
     # Allow statements and log messages to appear immediately
@@ -36,20 +36,10 @@ ENV PIP_DEFAULT_TIMEOUT=100 \
     PIP_NO_CACHE_DIR=1
 
 RUN set -ex \
-    && addgroup --system --gid 999 appuser \
-    && adduser --system --uid 999 --gid 999 --no-create-home appuser \
+    && addgroup --system --gid 30000 appuser \
+    && adduser --system --uid 30000 --no-create-home appuser \
     && mkdir -p /app \
     && chown -R appuser:appuser /app
-
-RUN set -ex \
-    && apt-get update && export DEBIAN_FRONTEND=noninteractive \
-    && apt-get -y install --no-install-recommends \
-    build-essential \
-    && apt-get autoremove -y \
-    && apt-get clean -y \
-    && apt-get autoclean -y \
-    && rm -rf /var/cache/apt/archives /var/lib/apt/lists/* \
-    ;
 
 WORKDIR /app
 
