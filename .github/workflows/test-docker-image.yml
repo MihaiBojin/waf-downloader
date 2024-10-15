@@ -47,18 +47,13 @@ jobs:
           source "scripts/functions.bash"
 
           OWNER_REPO="$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" # format: org/repo
-          REPO_NAME=$(echo "${{ github.repository }}" | cut -d '/' -f 2)
-
-          TAG="$(get_tag_at_head)"
-          if [ -z "$TAG" ]; then
-            TAG="${{ github.sha }}"
-          fi
-
           echo "OWNER_REPO=$OWNER_REPO" >> "$GITHUB_ENV"
+
+          REPO_NAME=$(echo "${{ github.repository }}" | cut -d '/' -f 2)
           echo "REPO_NAME=$REPO_NAME" >> "$GITHUB_ENV"
-          echo "TAG=$TAG" >> "$GITHUB_ENV"
 
           scripts/detect-and-set-tag-version.bash
+          echo "VERSION=$(cat ${{ github.workspace }}/VERSION)" >> "$GITHUB_ENV"
 
       - name: Build Docker multiplatform image
         id: build
@@ -66,10 +61,19 @@ jobs:
         with:
           platforms: linux/amd64,linux/arm64
           push: false
+          labels: |
+            org.opencontainers.image.title=Cloudflare Web Application Firewall log downloader
+            org.opencontainers.image.description="Cloudflare Web Application Firewall log downloader for a specified zone and time range"
+            org.opencontainers.image.url=https://github.com/${{ github.repository }}
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.version=${{ env.VERSION }}
+            org.opencontainers.image.created=${{ github.event.head_commit.timestamp }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.licenses=Apache-2.0
           tags: |
             ghcr.io/${{ env.OWNER_REPO }}:${{ github.sha }}
-            ghcr.io/${{ env.OWNER_REPO }}:${{ env.TAG }}
+            ghcr.io/${{ env.OWNER_REPO }}:${{ env.VERSION }}
             ghcr.io/${{ env.OWNER_REPO }}:latest
             docker.io/${{ vars.DOCKERHUB_USERNAME }}/${{ env.REPO_NAME }}:${{ github.sha }}
-            docker.io/${{ vars.DOCKERHUB_USERNAME }}/${{ env.REPO_NAME }}:${{ env.TAG }}
+            docker.io/${{ vars.DOCKERHUB_USERNAME }}/${{ env.REPO_NAME }}:${{ env.VERSION }}
             docker.io/${{ vars.DOCKERHUB_USERNAME }}/${{ env.REPO_NAME }}:latest

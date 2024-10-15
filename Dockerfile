@@ -27,10 +27,6 @@ RUN /usr/local/bin/task build
 
 FROM --platform=$BUILDPLATFORM python:3.13-slim
 
-LABEL org.opencontainers.image.source="https://github.com/MihaiBojin/waf-downloader"
-LABEL org.opencontainers.image.description="Cloudflare Web Application Firewall log downloader for a specified zone and time range"
-LABEL org.opencontainers.image.licenses=Apache-2.0
-
 ENV PIP_DEFAULT_TIMEOUT=100 \
     # Allow statements and log messages to appear immediately
     PYTHONUNBUFFERED=1 \
