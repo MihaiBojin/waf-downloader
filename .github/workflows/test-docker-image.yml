@@ -57,6 +57,12 @@ jobs:
           echo "OWNER_REPO=$OWNER_REPO" >> "$GITHUB_ENV"
           echo "REPO_NAME=$REPO_NAME" >> "$GITHUB_ENV"
           echo "TAG=$TAG" >> "$GITHUB_ENV"
+      - name: Generate build tags
+        run: |
+          eval "$(task venv)"
+          source "scripts/functions.bash"
+
+          task docker-build
 
       - name: Build and push
         id: build

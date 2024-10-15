@@ -1,7 +1,5 @@
+.env
 **/.env
-**/.github
-**/.devcontainer
-**/scripts
 **/build
 **/.venv
 **/.pytest_cache

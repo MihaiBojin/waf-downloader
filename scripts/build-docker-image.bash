@@ -81,16 +81,16 @@ fi
 echo "Reverting version to repository value..."
 git checkout -- "$VERSION_FILE"
 
-# Build the image
-echo "Building (${DOCKER_TAGS[*]}) for $PLATFORM..."
-mkdir -p build
-docker buildx build $PUSH_FLAG $LOAD_FLAG \
-    --platform "$PLATFORM" \
-    --build-arg PROJECT_NAME="$PROJECT_NAME" \
-    --build-arg VERSION="$VERSION" \
-    $(for tag in "${DOCKER_TAGS[@]}"; do echo -n "-t $tag "; done) \
-    --metadata-file build/build-metadata.json \
-    .
+# # Build the image
+# echo "Building (${DOCKER_TAGS[*]}) for $PLATFORM..."
+# mkdir -p build
+# docker buildx build $PUSH_FLAG $LOAD_FLAG \
+#     --platform "$PLATFORM" \
+#     --build-arg PROJECT_NAME="$PROJECT_NAME" \
+#     --build-arg VERSION="$VERSION" \
+#     $(for tag in "${DOCKER_TAGS[@]}"; do echo -n "-t $tag "; done) \
+#     --metadata-file build/build-metadata.json \
+#     .
 
-echo
-echo "Built image (${DOCKER_TAGS[*]})for $PLATFORM (with '$PUSH_FLAG' '$LOAD_FLAG')"
+# echo
+# echo "Built image (${DOCKER_TAGS[*]})for $PLATFORM (with '$PUSH_FLAG' '$LOAD_FLAG')"
