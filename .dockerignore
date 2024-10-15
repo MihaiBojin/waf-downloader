@@ -1,5 +1,6 @@
 .env
 **/.env
+**/.git
 **/build
 **/.venv
 **/.pytest_cache

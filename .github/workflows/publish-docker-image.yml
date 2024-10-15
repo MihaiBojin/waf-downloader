@@ -75,6 +75,8 @@ jobs:
           echo "REPO_NAME=$REPO_NAME" >> "$GITHUB_ENV"
           echo "TAG=$TAG" >> "$GITHUB_ENV"
 
+          scripts/detect-and-set-tag-version.bash
+
       - name: Build and push
         id: build
         uses: docker/build-push-action@v6

@@ -57,19 +57,15 @@ jobs:
           echo "OWNER_REPO=$OWNER_REPO" >> "$GITHUB_ENV"
           echo "REPO_NAME=$REPO_NAME" >> "$GITHUB_ENV"
           echo "TAG=$TAG" >> "$GITHUB_ENV"
-      - name: Generate build tags
-        run: |
-          eval "$(task venv)"
-          source "scripts/functions.bash"
 
-          task docker-build
+          scripts/detect-and-set-tag-version.bash
 
-      - name: Build and push
+      - name: Build Docker multiplatform image
         id: build
         uses: docker/build-push-action@v6
         with:
           platforms: linux/amd64,linux/arm64
-          push: true
+          push: false
           tags: |
             ghcr.io/${{ env.OWNER_REPO }}:${{ github.sha }}
             ghcr.io/${{ env.OWNER_REPO }}:${{ env.TAG }}
