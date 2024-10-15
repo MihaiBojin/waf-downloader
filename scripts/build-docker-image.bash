@@ -11,7 +11,6 @@ readonly VERSION_FILE
 source "$DIR/functions.bash"
 
 # Retrieve current git sha
-TAG="$(get_git_sha)"
 VERSION="$(cat "$VERSION_FILE")"
 if [ -z "$(is_dirty)" ]; then
     # Working dir is clean, attempt to use tag
@@ -19,17 +18,19 @@ if [ -z "$(is_dirty)" ]; then
 
     # If git tag found, use it
     if [ -n "$GITTAG" ]; then
-        TAG="$GITTAG"
         VERSION="$GITTAG"
     fi
 fi
-readonly TAG
 
 # Parse command-line arguments
-PLATFORM="$(uname -s)/$(uname -m)"
+PLATFORM="linux/arm64,linux/amd64"
 DOCKER_TAGS=()
 while [[ $# -gt 0 ]]; do
     case $1 in
+    --push)
+        PUSH_FLAG="--push"
+        shift 1
+        ;;
     --platform)
         PLATFORM="$2"
         shift 2
@@ -58,7 +59,7 @@ echo "$VERSION" >"$VERSION_FILE"
 echo "Building (${DOCKER_TAGS[*]}) for $PLATFORM..."
 mkdir -p build
 set +e
-docker buildx build --sbom=true --provenance=true \
+docker buildx build --sbom=true --provenance=true "$PUSH_FLAG" \
     --platform "$PLATFORM" \
     $(for tag in "${DOCKER_TAGS[@]}"; do echo -n "-t $tag "; done) \
     --metadata-file build/build-metadata.json \
@@ -77,4 +78,4 @@ if [ $res -ne 0 ]; then
 fi
 
 echo
-echo "Built image (${DOCKER_TAGS[*]}) for $PLATFORM" >&2
+echo "Built image (${DOCKER_TAGS[*]}) for $PLATFORM, flags: $PUSH_FLAG" >&2
