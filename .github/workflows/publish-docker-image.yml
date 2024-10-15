@@ -73,7 +73,7 @@ jobs:
           fi
 
           task docker-build -- \
-            --platform linux/arm64,linux/x86_64 \
+            --platform linux/amd64,linux/arm64 \
             --push \
             --tag "ghcr.io/$OWNER_REPO:${{ github.sha }}" \
             --tag "ghcr.io/$OWNER_REPO:$TAG" \
