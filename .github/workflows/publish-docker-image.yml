@@ -99,7 +99,7 @@ jobs:
       - name: Generate SBOM (GHCR)
         uses: anchore/sbom-action@v0
         with:
-          image: ghcr.io/${{ env.OWNER_REPO }}:${{ env.VERSION }}
+          image: ghcr.io/${{ env.OWNER_REPO }}:${{ github.sha }}
 
       - name: Generate SBOM (Docker Hub)
         uses: anchore/sbom-action@v0
