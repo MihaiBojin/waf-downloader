@@ -79,7 +79,7 @@ jobs:
             ghcr.io/${{ env.OWNER_REPO }}:${{ env.VERSION }}
             ghcr.io/${{ env.OWNER_REPO }}:latest
             docker.io/${{ vars.DOCKERHUB_USERNAME }}/${{ env.REPO_NAME }}:${{ github.sha }}
-            docker.io/${{ vars.DOCKERHUB_USER NAME }}/${{ env.REPO_NAME }}:${{ env.VERSION }}
+            docker.io/${{ vars.DOCKERHUB_USERNAME }}/${{ env.REPO_NAME }}:${{ env.VERSION }}
             docker.io/${{ vars.DOCKERHUB_USERNAME }}/${{ env.REPO_NAME }}:latest
 
       - name: Generate SBOM (GHCR)
