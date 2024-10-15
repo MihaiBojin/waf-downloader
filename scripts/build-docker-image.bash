@@ -25,14 +25,8 @@ if [ -z "$(is_dirty)" ]; then
 fi
 readonly TAG
 
-# Load project name from project manifest
-PROJECT_NAME="$(get_project_name)"
-readonly PROJECT_NAME
-
 # Parse command-line arguments
 PLATFORM="$(uname -s)/$(uname -m)"
-PUSH_FLAG=""
-LOAD_FLAG=""
 DOCKER_TAGS=()
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -44,14 +38,6 @@ while [[ $# -gt 0 ]]; do
         DOCKER_TAGS+=("$2")
         shift 2
         ;;
-    --push)
-        PUSH_FLAG="--push"
-        shift
-        ;;
-    --load)
-        LOAD_FLAG="--load"
-        shift
-        ;;
     *)
         echo "Unknown argument: $1" >&2
         exit 1
@@ -61,36 +47,34 @@ done
 
 # If DOCKER_TAGS is empty, populate with default
 if [ ${#DOCKER_TAGS[@]} -eq 0 ]; then
-    echo "Setting default image tag: $PROJECT_NAME:$TAG" >&2
-    DOCKER_TAGS=("$PROJECT_NAME:$TAG")
+    echo "ERROR: No image tags provided" >&2
+    exit 1
 fi
 
 echo "Updating version in '$VERSION_FILE' to: $VERSION"
 echo "$VERSION" >"$VERSION_FILE"
 
-echo "Building $PROJECT_NAME:$TAG..."
-if ! task build; then
-    # Revert the version file if erroring out
-    echo "Reverting version to repository value..."
-    git checkout -- "$VERSION_FILE"
-    echo
-    echo "Aborting..." >&2
-    exit 1
-fi
+# Build the image
+echo "Building (${DOCKER_TAGS[*]}) for $PLATFORM..."
+mkdir -p build
+set +e
+docker buildx build \
+    --platform "$PLATFORM" \
+    $(for tag in "${DOCKER_TAGS[@]}"; do echo -n "-t $tag "; done) \
+    --metadata-file build/build-metadata.json \
+    .
+res=$?
+set -e
+
 # Revert the version after the dist/ was built
 echo "Reverting version to repository value..."
 git checkout -- "$VERSION_FILE"
 
-# # Build the image
-# echo "Building (${DOCKER_TAGS[*]}) for $PLATFORM..."
-# mkdir -p build
-# docker buildx build $PUSH_FLAG $LOAD_FLAG \
-#     --platform "$PLATFORM" \
-#     --build-arg PROJECT_NAME="$PROJECT_NAME" \
-#     --build-arg VERSION="$VERSION" \
-#     $(for tag in "${DOCKER_TAGS[@]}"; do echo -n "-t $tag "; done) \
-#     --metadata-file build/build-metadata.json \
-#     .
+if [ $res -ne 0 ]; then
+    echo
+    echo "ERROR: Failed to build image (${DOCKER_TAGS[*]}) for $PLATFORM" >&2
+    exit 1
+fi
 
-# echo
-# echo "Built image (${DOCKER_TAGS[*]})for $PLATFORM (with '$PUSH_FLAG' '$LOAD_FLAG')"
+echo
+echo "Built image (${DOCKER_TAGS[*]}) for $PLATFORM" >&2
