@@ -68,6 +68,12 @@ jobs:
           scripts/detect-and-set-tag-version.bash
           echo "VERSION=$(cat ${{ github.workspace }}/VERSION)" >> "$GITHUB_ENV"
 
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          make_latest: true
+
       - name: Build Docker multiplatform image
         id: build
         uses: docker/build-push-action@v6
