@@ -31,9 +31,6 @@ LABEL org.opencontainers.image.source="https://github.com/MihaiBojin/waf-downloa
 LABEL org.opencontainers.image.description="Cloudflare Web Application Firewall log downloader for a specified zone and time range"
 LABEL org.opencontainers.image.licenses=Apache-2.0
 
-ARG PROJECT_NAME
-ARG VERSION
-
 ENV PIP_DEFAULT_TIMEOUT=100 \
     # Allow statements and log messages to appear immediately
     PYTHONUNBUFFERED=1 \
@@ -62,7 +59,8 @@ WORKDIR /app
 
 COPY --from=builder /app/dist /app/dist
 
-RUN pip install --no-cache-dir "/app/dist/${PROJECT_NAME}-${VERSION}-py3-none-any.whl[cli]"
+# Install any wheel files with the 'cli' extra
+RUN find /app/dist/ -type f -name '*.whl' -exec pip install --no-cache-dir {}[cli] \;
 
 USER appuser
 
