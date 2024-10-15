@@ -39,7 +39,7 @@ jobs:
         run: |
           task create-venv
           eval "$(task venv)"
-          task setup
+          task install
 
       - name: Generate build tags
         run: |
