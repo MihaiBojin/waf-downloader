@@ -57,9 +57,7 @@ jobs:
           registry: docker.io
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Building and pushing Docker images
-        id: build
+      - name: Generate build tas
         run: |
           eval "$(task venv)"
           source "scripts/functions.bash"
@@ -72,20 +70,24 @@ jobs:
             TAG="${{ github.sha }}"
           fi
 
-          task docker-build -- \
-            --platform linux/amd64,linux/arm64 \
-            --push \
-            --tag "ghcr.io/$OWNER_REPO:${{ github.sha }}" \
-            --tag "ghcr.io/$OWNER_REPO:$TAG" \
-            --tag "ghcr.io/$OWNER_REPO:latest" \
-            --tag "docker.io/${{ vars.DOCKERHUB_USERNAME }}/$REPO_NAME:${{ github.sha }}" \
-            --tag "docker.io/${{ vars.DOCKERHUB_USERNAME }}/$REPO_NAME:$TAG" \
-            --tag "docker.io/${{ vars.DOCKERHUB_USERNAME }}/$REPO_NAME:latest"
+          echo "OWNER_REPO=$OWNER_REPO" >> "$GITHUB_ENV"
+          echo "REPO_NAME=$REPO_NAME" >> "$GITHUB_ENV"
+          echo "TAG=$TAG" >> "$GITHUB_ENV"
 
-          # digest
-          DOCKER_DIGEST="$(jq -r '.["containerimage.digest"]' build/build-metadata.json)"
-          echo "digest=${DOCKER_DIGEST}" >&2
-          echo "digest=${DOCKER_DIGEST}" >> "$GITHUB_OUTPUT"
+      - name: Build and push
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ghcr.io/${{ env.OWNER_REPO }}:${{ github.sha }}
+            ghcr.io/${{ env.OWNER_REPO }}:${{ env.TAG }}
+            ghcr.io/${{ env.OWNER_REPO }}:latest
+            docker.io/${{ vars.DOCKERHUB_USERNAME }}/${{ env.REPO_NAME }}:${{ github.sha }}
+            docker.io/${{ vars.DOCKERHUB_USERNAME }}/${{ env.REPO_NAME }}:${{ env.TAG }}
+
+            docker.io/${{ vars.DOCKERHUB_USERNAME }}/${{ env.REPO_NAME }}:latest
 
       - name: Generate artifact attestation for GitHub Container Registry
         uses: actions/attest-build-provenance@v1
