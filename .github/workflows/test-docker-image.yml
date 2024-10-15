@@ -75,6 +75,7 @@ jobs:
             org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.licenses=Apache-2.0
           tags: |
+            ${{ env.REPO_NAME }}:${{ github.sha }}
             ghcr.io/${{ env.OWNER_REPO }}:${{ github.sha }}
             ghcr.io/${{ env.OWNER_REPO }}:${{ env.VERSION }}
             ghcr.io/${{ env.OWNER_REPO }}:latest
@@ -85,9 +86,4 @@ jobs:
       - name: Generate SBOM (GHCR)
         uses: anchore/sbom-action@v0
         with:
-          image: ghcr.io/${{ env.OWNER_REPO }}:${{ github.sha }}
-
-      - name: Generate SBOM (Docker Hub)
-        uses: anchore/sbom-action@v0
-        with:
-          image: docker.io/${{ vars.DOCKERHUB_USERNAME }}/${{ env.REPO_NAME }}:${{ github.sha }}
+          image: ${{ env.REPO_NAME }}:${{ github.sha }}
