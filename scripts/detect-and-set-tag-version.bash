@@ -10,19 +10,20 @@ source "$DIR/functions.bash"
 VERSION_FILE="$DIR/../VERSION"
 readonly VERSION_FILE
 
-# Check that the working directory is clean
-if [ -n "$(is_dirty)" ]; then
-    echo "Working directory is dirty, cannot proceed..." >&2
-    git status
-    exit 1
-fi
+#TAG="$(get_git_sha)"
+VERSION="$(cat "$VERSION_FILE")"
+if [ -z "$(is_dirty)" ]; then
+    # Working dir is clean, attempt to use tag
+    GITTAG="$(get_tag_at_head)"
 
-# Retrieve current git sha
-VERSION="$(get_tag_at_head)"
-if [ -z "$VERSION" ]; then
-    echo "No version tag found, cannot proceed..." >&2
-    exit 1
+    # If git tag found, use it
+    if [ -n "$GITTAG" ]; then
+        #TAG="$GITTAG"
+        VERSION="$GITTAG"
+    fi
 fi
+#readonly TAG
+readonly VERSION
 
 # Output the detected tag
 echo "Updating version in '$VERSION_FILE' to: $VERSION"
