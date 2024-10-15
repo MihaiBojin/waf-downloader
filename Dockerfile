@@ -1,4 +1,3 @@
-# Build stage
 FROM --platform=$BUILDPLATFORM python:3.13-slim AS builder
 
 ENV PIP_DEFAULT_TIMEOUT=100 \
@@ -26,7 +25,6 @@ COPY . /app
 RUN /usr/local/bin/task install
 RUN /usr/local/bin/task build
 
-# Final stage
 FROM --platform=$BUILDPLATFORM python:3.13-slim
 
 LABEL org.opencontainers.image.source="https://github.com/MihaiBojin/waf-downloader"
@@ -46,7 +44,7 @@ ENV PIP_DEFAULT_TIMEOUT=100 \
 
 RUN set -ex \
     && addgroup --system --gid 999 appuser \
-    && adduser --system --uid 999 --gid 999 --no-create-home --disabled-password --gecos '' appuser \
+    && adduser --system --uid 999 --gid 999 --no-create-home appuser \
     && mkdir -p /app \
     && chown -R appuser:appuser /app
 
@@ -64,10 +62,8 @@ WORKDIR /app
 
 COPY --from=builder /app/dist /app/dist
 
-# RUN pip install --user --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir "/app/dist/${PROJECT_NAME}-${VERSION}-py3-none-any.whl[cli]"
 
-# RUN pip install --no-cache-dir "/app/dist/${PROJECT_NAME}-${VERSION}-py3-none-any.whl[cli]"
+USER appuser
 
-# USER appuser
-
-# ENTRYPOINT ["python", "/usr/local/bin/waf-downloader"]
+ENTRYPOINT ["python", "/usr/local/bin/waf-downloader"]
