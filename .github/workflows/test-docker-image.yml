@@ -41,10 +41,33 @@ jobs:
           eval "$(task venv)"
           task setup
 
-      - name: Building Docker images
-        id: build
+      - name: Generate build tags
         run: |
           eval "$(task venv)"
+          source "scripts/functions.bash"
 
-          task docker-build -- \
-            --platform linux/arm64,linux/x86_64
+          OWNER_REPO="$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" # format: org/repo
+          REPO_NAME=$(echo "${{ github.repository }}" | cut -d '/' -f 2)
+
+          TAG="$(get_tag_at_head)"
+          if [ -z "$TAG" ]; then
+            TAG="${{ github.sha }}"
+          fi
+
+          echo "OWNER_REPO=$OWNER_REPO" >> "$GITHUB_ENV"
+          echo "REPO_NAME=$REPO_NAME" >> "$GITHUB_ENV"
+          echo "TAG=$TAG" >> "$GITHUB_ENV"
+
+      - name: Build and push
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ghcr.io/${{ env.OWNER_REPO }}:${{ github.sha }}
+            ghcr.io/${{ env.OWNER_REPO }}:${{ env.TAG }}
+            ghcr.io/${{ env.OWNER_REPO }}:latest
+            docker.io/${{ vars.DOCKERHUB_USERNAME }}/${{ env.REPO_NAME }}:${{ github.sha }}
+            docker.io/${{ vars.DOCKERHUB_USERNAME }}/${{ env.REPO_NAME }}:${{ env.TAG }}
+            docker.io/${{ vars.DOCKERHUB_USERNAME }}/${{ env.REPO_NAME }}:latest

@@ -57,7 +57,8 @@ jobs:
           registry: docker.io
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Generate build tas
+
+      - name: Generate build tags
         run: |
           eval "$(task venv)"
           source "scripts/functions.bash"
@@ -86,7 +87,6 @@ jobs:
             ghcr.io/${{ env.OWNER_REPO }}:latest
             docker.io/${{ vars.DOCKERHUB_USERNAME }}/${{ env.REPO_NAME }}:${{ github.sha }}
             docker.io/${{ vars.DOCKERHUB_USERNAME }}/${{ env.REPO_NAME }}:${{ env.TAG }}
-
             docker.io/${{ vars.DOCKERHUB_USERNAME }}/${{ env.REPO_NAME }}:latest
 
       - name: Generate artifact attestation for GitHub Container Registry
