@@ -58,7 +58,7 @@ echo "$VERSION" >"$VERSION_FILE"
 echo "Building (${DOCKER_TAGS[*]}) for $PLATFORM..."
 mkdir -p build
 set +e
-docker buildx build \
+docker buildx build --sbom=true --provenance=true \
     --platform "$PLATFORM" \
     $(for tag in "${DOCKER_TAGS[@]}"; do echo -n "-t $tag "; done) \
     --metadata-file build/build-metadata.json \
