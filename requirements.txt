@@ -1,6 +1,6 @@
 # Global requirements
 # keep-sorted start
-boto3==1.35.41
+boto3==1.35.42
 more_itertools==10.5.0
 psycopg-binary==3.2.3
 psycopg==3.2.3
