@@ -57,10 +57,16 @@ which you will need to install for running the following commands:
 task docker-build
 
 # Load all logs in zone, starting 5 minutes prior
-task docker-run ARGS="--zone_id [CLOUDFLARE_ZONE_ID] --start_minutes_ago -5"
+task docker-run -- --zone_id $CLOUDFLARE_ZONE_ID --start_minutes_ago 5
 
 # And alternatively, only output the logs
-task docker-run ARGS="--zone_id [CLOUDFLARE_ZONE_ID] --start_minutes_ago -5" 2>/dev/null
+task docker-run -- --zone_id $CLOUDFLARE_ZONE_ID --start_minutes_ago 5 2>/dev/null
+
+# Do not specify a start time, relying on a starting timestamp stored in the database
+# If a timestamp is not found in the database, or specified with --start_minutes_ago, the downloader will start 5 minutes prior
+# This functionality makes it easy to run waf-downloader as a cron job
+# NOTE: specifying --start_minutes_ago will always override the timestamp stored in the database, causing potential gaps in the data
+task docker-run -- --zone_id $CLOUDFLARE_ZONE_ID
 ```
 
 ## Publishing to PyPI

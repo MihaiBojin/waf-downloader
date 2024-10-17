@@ -10,14 +10,14 @@ import multiprocessing
 import os
 import sys
 import time
-from waf_logs.db import Database
+from waf_logs.db import EVENT_DOWNLOAD_TIME, Database
 from dotenv import load_dotenv
 
 from waf_logs.downloader import DatabaseOutput, DebugOutput, Output, download_loop
 from waf_logs.helpers import compute_time
 
 
-def perform_download(
+def _perform_download(
     zone_id: str, token: str, start_time: datetime, sink: Output
 ) -> datetime:
     t0 = time.time()
@@ -33,6 +33,15 @@ def perform_download(
     print(f"Completed download after {t1:.2f} seconds", file=sys.stderr)
 
     return end_time
+
+
+def _store_last_download_time(db: Database, start_time: datetime) -> None:
+    """Store the last download time in the database"""
+    if db is None:
+        # Nothing to do if DB is not initialized
+        return
+
+    db.pooled_exec(db.set_event(EVENT_DOWNLOAD_TIME, start_time))
 
 
 def main() -> None:
@@ -54,7 +63,7 @@ def main() -> None:
         type=lambda s: datetime.fromisoformat(s),
         required=False,
         help="The starting point of the datetime in ISO 8601 format (e.g., 2023-12-25T10:30:00Z)."
-        "This is mutually exclusive with --start_minutes_ago.",
+        "This will be overwritten by --start_minutes_ago.",
     )
     parser.add_argument(
         "--start_minutes_ago",
@@ -62,7 +71,7 @@ def main() -> None:
         required=False,
         help="A relative duration, specified in minutes, from which to start downloading logs."
         "For example, if --start_minutes_ago=5, the script will download events more recent than 5 minutes ago."
-        "This is mutually exclusive with --start_time.",
+        "This will override --start_time.",
     )
     parser.add_argument(
         "--concurrency",
@@ -99,10 +108,9 @@ def main() -> None:
     args = parser.parse_args()
     zone_id = args.zone_id
 
-    if args.start_time is None and args.start_minutes_ago is None:
-        parser.print_help()
-        parser.error("One of '--start_time' or '--start_minutes_ago' must be provided.")
+    # Determine the earliest time to download logs for
     start_time = args.start_time
+    # If start_minutes_ago was specified, use it
     if args.start_minutes_ago is not None:
         if args.start_minutes_ago < 0:
             parser.error("--start_minutes_ago must be a positive number.")
@@ -129,11 +137,21 @@ def main() -> None:
     sink: Output
     connection_string = os.getenv("DB_CONN_STR")
     if connection_string is None:
+        # If we still don't have a start time, default to 5 minutes ago
+        if start_time is None:
+            start_time = compute_time(at=None, delta_by_minutes=-5)
+
         sink = DebugOutput()
+
     else:
         db = Database(connection_string, max_pool_size=concurrency)
         if ensure_schema:
             db.ensure_schema()
+
+        # If we don't have a start time, load it from the database
+        if start_time is None:
+            start_time = db.pooled_exec(db.get_event(EVENT_DOWNLOAD_TIME))
+            print(f"Start time loaded from DB: {start_time}", file=sys.stderr)
 
         sink = DatabaseOutput(
             db=Database(connection_string, max_pool_size=concurrency),
@@ -148,9 +166,11 @@ def main() -> None:
         )
         while True:
             t0 = datetime.now(tz=timezone.utc)
-            start_time = perform_download(zone_id, token, start_time, sink)
+            start_time = _perform_download(zone_id, token, start_time, sink)
             duration = start_time - t0
             print(f"Downloaded up to timestamp: {start_time}", file=sys.stderr)
+
+            _store_last_download_time(db, start_time)
 
             # If the duration approaches the sleep interval, skip the sleep to allow the process to catch-up
             if duration.total_seconds() > sleep_interval * 0.8:
@@ -165,7 +185,8 @@ def main() -> None:
                 )
                 time.sleep(sleep_interval)
     else:
-        perform_download(zone_id, token, start_time, sink)
+        start_time = _perform_download(zone_id, token, start_time, sink)
+        _store_last_download_time(db, start_time)
 
 
 if __name__ == "__main__":

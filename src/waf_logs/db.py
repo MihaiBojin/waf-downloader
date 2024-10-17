@@ -1,13 +1,17 @@
+from datetime import datetime
 import json
 import sys
 import threading
 import time
-from typing import Any, Callable, List
+from typing import Any, Callable, List, Optional
 
 from psycopg_pool import ConnectionPool
 
 from waf_logs import WAF
-from waf_logs.helpers import list_files, read_file, validate_name
+from waf_logs.helpers import compute_time, list_files, read_file, validate_name
+
+# Define a constant for the maximum number of retries
+EVENT_DOWNLOAD_TIME = "last_download_time"
 
 
 class Database:
@@ -105,6 +109,72 @@ class Database:
         return _execute
 
     @staticmethod
+    def set_event(name: str, event_time: datetime) -> Callable[[Any], None]:
+        def exec(conn: Any) -> None:
+            # Create a cursor object
+            cur = conn.cursor()
+
+            try:
+                # Insert JSON data into the table
+                update_query = """
+                INSERT INTO events (name, datetime)
+                VALUES (%s, %s)
+                ON CONFLICT (name)
+                DO UPDATE SET datetime = EXCLUDED.datetime
+                """
+
+                try:
+                    cur.execute(update_query, (name, event_time))
+                    conn.commit()
+                    print(f"Event '{name}' set to {event_time}", file=sys.stderr)
+
+                except Exception as e:
+                    print(
+                        f"Failed to set event '{name}' to {event_time}: {e}",
+                        file=sys.stderr,
+                    )
+                    conn.rollback()  # Roll back the transaction before retrying
+
+            finally:
+                # Close the cursor
+                cur.close()
+
+        return exec
+
+    @staticmethod
+    def get_event(name: str) -> Callable[[Any], datetime]:
+        def get_row(conn: Any) -> datetime:
+            # Create a cursor object
+            cur = conn.cursor()
+            res: Optional[str] = None
+            try:
+                # Insert JSON data into the table
+                select_query = """
+                SELECT datetime FROM events WHERE name = %s LIMIT 1;
+                """
+
+                cur.execute(select_query, (name,))
+                res = cur.fetchone()
+                conn.commit()
+
+            except Exception as e:
+                print(f"Failed to get event '{name}': {e}", file=sys.stderr)
+
+            finally:
+                # Close the cursor
+                if cur:
+                    cur.close()
+
+                # Parse the datetime
+                if res:
+                    return datetime.fromisoformat(str(res[0]))
+
+                # Default to -5 minutes, if event not found
+                return compute_time(at=None, delta_by_minutes=-5)
+
+        return get_row
+
+    @staticmethod
     def insert_bulk(
         data: List[WAF], table_name: str, max_retries: int = 3
     ) -> Callable[[Any], Any]:
@@ -157,8 +227,8 @@ class Database:
                             f"Exception: {e}, retrying (attempt {attempt + 1}/{max_retries})",
                             file=sys.stderr,
                         )
-                        time.sleep(1)
                         conn.rollback()  # Roll back the transaction before retrying
+                        time.sleep(1)
                 else:
                     print("Max retries reached, insert chunk failed", file=sys.stderr)
 
