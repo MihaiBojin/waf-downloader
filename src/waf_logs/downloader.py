@@ -70,6 +70,8 @@ class DatabaseOutput(Output):
                 Database.insert_bulk(data=chunk, table_name=self.table_name)
             )
 
+            self.db.pooled_exec(Database.get_event("last_downloaded_time"))
+
             # Print stats and approximate duration
             duration, _, all_rows, total_bytes = results
             row_per_sec = all_rows / duration

@@ -12,6 +12,7 @@ source "$DIR/functions.bash"
 
 # Retrieve current git sha
 VERSION="$(cat "$VERSION_FILE")"
+GITTAG="$(get_git_sha)"
 if [ -z "$(is_dirty)" ]; then
     # Working dir is clean, attempt to use tag
     GITTAG="$(get_tag_at_head)"
@@ -24,6 +25,7 @@ fi
 
 # Parse command-line arguments
 PLATFORM="linux/arm64,linux/amd64"
+PUSH_FLAG=""
 DOCKER_TAGS=()
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -48,8 +50,9 @@ done
 
 # If DOCKER_TAGS is empty, populate with default
 if [ ${#DOCKER_TAGS[@]} -eq 0 ]; then
-    echo "ERROR: No image tags provided" >&2
-    exit 1
+    PROJECT_NAME="$(get_project_name)"
+    DOCKER_TAGS+=("$PROJECT_NAME:$GITTAG")
+    echo "Using default image tag: $PROJECT_NAME:$GITTAG" >&2
 fi
 
 echo "Updating version in '$VERSION_FILE' to: $VERSION"
@@ -59,7 +62,7 @@ echo "$VERSION" >"$VERSION_FILE"
 echo "Building (${DOCKER_TAGS[*]}) for $PLATFORM..."
 mkdir -p build
 set +e
-docker buildx build --sbom=true --attest type=provenance,mode=max "$PUSH_FLAG" \
+docker buildx build --sbom=true --attest type=provenance,mode=max $PUSH_FLAG \
     --platform "$PLATFORM" \
     $(for tag in "${DOCKER_TAGS[@]}"; do echo -n "-t $tag "; done) \
     --metadata-file build/build-metadata.json \
