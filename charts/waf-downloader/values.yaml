@@ -1,5 +1,5 @@
 cloudflare:
-  zoneId: ""  # Default empty, user should provide this
+  zoneId:   # Default empty, user should provide this
   apiToken: ""  # Default empty, user should provide this
 
 startMinutesAgo: "5"  # Default to 5 minutes ago

@@ -127,10 +127,10 @@ def main() -> None:
     sleep_interval = args.sleep_interval_minutes * 60
 
     # Get Cloudflare settings
-    token = os.getenv("CLOUDFLARE_TOKEN")
+    token = os.getenv("CLOUDFLARE_API_TOKEN")
     if token is None:
         raise ValueError(
-            "A valid Cloudflare token must be specified via CLOUDFLARE_TOKEN"
+            "A valid Cloudflare token must be specified via CLOUDFLARE_API_TOKEN"
         )
 
     # Initialize the sink

@@ -30,10 +30,10 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           env:
-          - name: CLOUDFLARE_TOKEN
+          - name: CLOUDFLARE_API_TOKEN
             valueFrom:
               secretKeyRef:
-                key: CLOUDFLARE_TOKEN
+                key: CLOUDFLARE_API_TOKEN
                 name: {{ include "waf-downloader.fullname" . }}
           - name: DB_CONN_STR
             valueFrom:
