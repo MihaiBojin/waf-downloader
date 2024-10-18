@@ -34,5 +34,5 @@ get_project_name() {
 latest_version() {
     local repo
     repo="$(git config --get remote.origin.url)"
-    git -c 'versionsort.suffix=-' ls-remote --exit-code --refs --sort='version:refname' --tags "$repo" '*.*.*' | tail -1 | cut -d'/' -f3
+    git -c 'versionsort.suffix=-' ls-remote --exit-code --refs --sort='version:refname' --tags "$repo" 'v*.*.*' | tail -1 | cut -d'/' -f3 | sed 's/^v//'
 }
