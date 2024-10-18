@@ -9,6 +9,8 @@ repos:
       - id: check-ast
       - id: check-docstring-first
       - id: check-yaml
+        args: ["--unsafe"]
+        exclude: "^charts/"
       - id: debug-statements
       - id: end-of-file-fixer
       - id: trailing-whitespace

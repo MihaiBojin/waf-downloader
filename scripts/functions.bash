@@ -29,3 +29,10 @@ get_project_name() {
     dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
     python -c "import toml; print(toml.load('$dir/../pyproject.toml')['project']['name'])"
 }
+
+# Function to get the most recent tag from the origin repo
+latest_version() {
+    local repo
+    repo="$(git config --get remote.origin.url)"
+    git -c 'versionsort.suffix=-' ls-remote --exit-code --refs --sort='version:refname' --tags "$repo" '*.*.*' | tail -1 | cut -d'/' -f3
+}
