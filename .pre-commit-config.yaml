@@ -44,4 +44,10 @@ repos:
         name: Pre-push hook
         entry: scripts/pre-push.bash
         language: script
-        stages: [push]
+        stages: [pre-push]
+      - id: helm-lint
+        name: Helm lint
+        entry: task helm-lint
+        language: system
+        pass_filenames: false
+        stages: [pre-commit, pre-push]
