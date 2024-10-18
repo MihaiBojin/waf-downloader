@@ -15,7 +15,7 @@ tasks:
       - scripts/delete-venv.bash
 
   clean:
-    deps: [clean-venv, reset-chart-version]
+    deps: [clean-venv]
     cmds:
       - echo Cleaning up builds and caches... >&2
       - rm -rf {out,dist,build,.mypy_cache,.ruff_cache}
@@ -113,21 +113,14 @@ tasks:
     deps: [update-chart-version]
     cmds:
       - helm lint charts/waf-downloader
-      - task: reset-chart-version
 
   helm-template:
     desc: Template the Helm chart
     deps: [update-chart-version]
     cmds:
       - helm template my-release charts/waf-downloader
-      - task: reset-chart-version
 
   update-chart-version:
     desc: Update the Helm chart version
     cmds:
       - scripts/helm-set-version.bash
-
-  reset-chart-version:
-    desc: Reset the Helm chart version
-    cmds:
-      - scripts/helm-reset-version.bash
