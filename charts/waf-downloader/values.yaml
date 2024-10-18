@@ -1,12 +1,16 @@
 cloudflare:
-  zoneId:   # Default empty, user should provide this
-  apiToken: ""  # Default empty, user should provide this
+  # Defines the Cloudflare zone ID
+  zoneId: ""
+  # Defines the Cloudflare API token
+  apiToken: ""
 
-startMinutesAgo: "5"  # Default to 5 minutes ago
+# Defines how many lines to bulk insert into the database
 chunkSize: "1000"  # Default to 1000
 
 outputs:
-  dbConnStr: ""  # Default empty, user should provide this
+  # Defines where to store the downloaded logs
+  # Skipping this value will result in the logs being printed to the console
+  dbConnStr: ""
 
 replicaCount: 1
 
@@ -14,7 +18,7 @@ replicaCount: 1
 image:
   repository: docker.io/mihaibojin/waf-downloader
   # This sets the pull policy for images.
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
 
 # This is for the secretes for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
 imagePullSecrets: []

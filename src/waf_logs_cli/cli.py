@@ -136,10 +136,12 @@ def main() -> None:
     # Initialize the sink
     sink: Output
     connection_string = os.getenv("DB_CONN_STR")
-    if connection_string is None:
-        # If we still don't have a start time, default to 5 minutes ago
+    # If we don't have a connection string, default to console output
+    if not connection_string:
         if start_time is None:
+            # If a start time was not defined, default to 5 minutes ago
             start_time = compute_time(at=None, delta_by_minutes=-5)
+            print(f"Defaulting start time to: {start_time}", file=sys.stderr)
 
         sink = DebugOutput()
 
@@ -148,8 +150,8 @@ def main() -> None:
         if ensure_schema:
             db.ensure_schema()
 
-        # If we don't have a start time, load it from the database
         if start_time is None:
+            # If we don't have a start time, load it from the database
             start_time = db.pooled_exec(db.get_event(EVENT_DOWNLOAD_TIME))
             print(f"Start time loaded from DB: {start_time}", file=sys.stderr)
 
