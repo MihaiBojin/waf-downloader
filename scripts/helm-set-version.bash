@@ -10,6 +10,6 @@ source "$DIR/functions.bash"
 VERSION="$(latest_version)"
 readonly VERSION
 
-cat charts/waf-downloader/Chart.yaml.tmpl >charts/waf-downloader/Chart.yaml
-sed -i '' "s/version: \"{{ VERSION }}\"/version: $VERSION/" charts/waf-downloader/Chart.yaml
-sed -i '' "s/appVersion: \"{{ VERSION }}\"/appVersion: $VERSION/" charts/waf-downloader/Chart.yaml
+cat "$DIR"/../charts/waf-downloader/Chart.yaml.tmpl >"$DIR"/../charts/waf-downloader/Chart.yaml
+sed -i '' "s/version: \"{{ VERSION }}\"/version: $VERSION/" "$DIR"/../charts/waf-downloader/Chart.yaml
+sed -i '' "s/appVersion: \"{{ VERSION }}\"/appVersion: $VERSION/" "$DIR"/../charts/waf-downloader/Chart.yaml
