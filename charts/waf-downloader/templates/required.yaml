@@ -1,0 +1,3 @@
+# Defines required values
+{{- $name := .Values.cloudflare.apiToken | required ".Values.cloudflare.apiToken is required." -}}
+{{- $name := .Values.cloudflare.zoneId  | required ".Values.cloudflare.zoneId is required." -}}

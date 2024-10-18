@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "waf-downloader.name" . }}
+  namespace: {{ include "waf-downloader.name" . }}
+  labels:
+    {{- include "waf-downloader.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "waf-downloader.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "waf-downloader.labels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          env:
+          - name: CLOUDFLARE_API_TOKEN
+            valueFrom:
+              secretKeyRef:
+                key: CLOUDFLARE_API_TOKEN
+                name: {{ include "waf-downloader.name" . }}
+          - name: DB_CONN_STR
+            valueFrom:
+              secretKeyRef:
+                key: DB_CONN_STR
+                name: {{ include "waf-downloader.name" . }}
+          - name: CLOUDFLARE_ZONE_ID
+            valueFrom:
+              configMapKeyRef:
+                name: {{ include "waf-downloader.name" . }}
+                key: CLOUDFLARE_ZONE_ID
+          - name: CHUNK_SIZE
+            valueFrom:
+              configMapKeyRef:
+                name: {{ include "waf-downloader.name" . }}
+                key: CHUNK_SIZE
+
+          args:
+          - --zone_id=$(CLOUDFLARE_ZONE_ID)
+          - --sleep_interval_minutes=10
+          - --follow
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          {{- with .Values.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

@@ -107,3 +107,20 @@ tasks:
     cmds:
       - echo "Verifying PyPI package..." >&2
       - scripts/verify-publish.bash --prod
+
+  helm-lint:
+    desc: Lint the Helm chart
+    deps: [update-chart-version]
+    cmds:
+      - helm lint charts/waf-downloader --set cloudflare.apiToken="REQUIRED" --set cloudflare.zoneId="REQUIRED"
+
+  helm-template:
+    desc: Template the Helm chart
+    deps: [update-chart-version]
+    cmds:
+      - helm template my-release charts/waf-downloader
+
+  update-chart-version:
+    desc: Update the Helm chart version
+    cmds:
+      - scripts/helm-set-version.bash

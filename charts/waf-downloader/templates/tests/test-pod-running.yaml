@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "waf-downloader.name" . }}-test-pod-is-running"
+  namespace: "{{ include "waf-downloader.name" . }}"
+  labels:
+    {{- include "waf-downloader.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: test-pod-exists
+      image: busybox
+      command: ['sh', '-c']
+      args:
+        - |
+          set -e
+          echo "Checking if pod {{ include "waf-downloader.fullname" . }} exists..."
+          if kubectl get pod -l app.kubernetes.io/name={{ include "waf-downloader.name" . }},app.kubernetes.io/instance={{ .Release.Name }} -n {{ include "waf-downloader.name" . }} | grep Running; then
+            echo "Pod exists and is running."
+            exit 0
+          else
+            echo "Pod does not exist or is not running."
+            exit 1
+          fi
+  restartPolicy: Never

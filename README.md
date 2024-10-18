@@ -7,6 +7,8 @@
 
 A library, CLI, and docker image that downloads Cloudflare WAF logs for a specified zone and time range.
 
+![Logo](./assets/logo.svg)
+
 ## Schema
 
 See [src/waf_logs/resources/db/](./src/waf_logs/resources/db) for a list of schemas that are auto-applied at start. This can be disabled by passing `--ensure_schema False`.
@@ -42,7 +44,7 @@ and
 Define secrets in an `.env` file (do not quote values):
 
 ```properties
-CLOUDFLARE_TOKEN=...
+CLOUDFLARE_API_TOKEN=...
 DB_CONN_STR=...
 ```
 
@@ -114,3 +116,20 @@ task publish-verify
 
 - <https://developers.cloudflare.com/analytics/graphql-api/tutorials/querying-firewall-events>
 - <https://developers.cloudflare.com/analytics/graphql-api/tutorials/export-graphql-to-csv/>
+
+## Helm Chart
+
+This repository includes a Helm chart for deploying the WAF Logs application to Kubernetes.
+The chart is located in the [charts/waf-downloader](./charts/waf-downloader) directory.
+
+### Installing the Chart
+
+```shell
+helm install waf-downloader ./charts/waf-downloader
+```
+
+### Uninstalling the Chart
+
+```shell
+helm uninstall waf-downloader
+```

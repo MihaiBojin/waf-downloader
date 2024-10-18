@@ -1,7 +1,7 @@
 # .pre-commit-config.yaml
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v3.4.0
+    rev: v5.0.0
     hooks:
       - id: check-added-large-files
         args: ["--maxkb=1024"]
@@ -9,6 +9,7 @@ repos:
       - id: check-ast
       - id: check-docstring-first
       - id: check-yaml
+        exclude: ^charts/.*/templates/
       - id: debug-statements
       - id: end-of-file-fixer
       - id: trailing-whitespace
@@ -42,4 +43,10 @@ repos:
         name: Pre-push hook
         entry: scripts/pre-push.bash
         language: script
-        stages: [push]
+        stages: [pre-push]
+      - id: helm-lint
+        name: Helm lint
+        entry: task helm-lint
+        language: system
+        pass_filenames: false
+        stages: [pre-commit, pre-push]
