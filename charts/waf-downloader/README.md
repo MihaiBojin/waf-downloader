@@ -1,4 +1,4 @@
-# Helm chart for theCloudflare Web Application Firewall log downloader
+# Helm chart for the Cloudflare Web Application Firewall log downloader
 
 ## Add the Helm repository
 
