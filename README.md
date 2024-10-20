@@ -39,6 +39,12 @@ and
 
 <https://hub.docker.com/repository/docker/mihaibojin/waf-downloader/tags>
 
+## Or with Helm
+
+See [charts/waf-downloader/README.md](./charts/waf-downloader/README.md) for more details.
+
+## Development
+
 ### Build and run with Docker
 
 Define secrets in an `.env` file (do not quote values):
@@ -116,20 +122,3 @@ task publish-verify
 
 - <https://developers.cloudflare.com/analytics/graphql-api/tutorials/querying-firewall-events>
 - <https://developers.cloudflare.com/analytics/graphql-api/tutorials/export-graphql-to-csv/>
-
-## Helm Chart
-
-This repository includes a Helm chart for deploying the WAF Logs application to Kubernetes.
-The chart is located in the [charts/waf-downloader](./charts/waf-downloader) directory.
-
-### Installing the Chart
-
-```shell
-helm install waf-downloader ./charts/waf-downloader
-```
-
-### Uninstalling the Chart
-
-```shell
-helm uninstall waf-downloader
-```

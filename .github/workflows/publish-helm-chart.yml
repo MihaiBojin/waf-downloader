@@ -1,0 +1,53 @@
+name: Publish Helm Chart to GitHub Pages
+
+on:
+  # Trigger only on v0.* tag pushes
+  push:
+    tags:
+      - "v0.*"
+
+jobs:
+  release-helm-chart:
+    runs-on: ubuntu-latest
+
+    # see: https://docs.github.com/en/actions/security-guides/automatic-token-authentication#modifying-the-permissions-for-the-github_token
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.39.2
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install dependencies
+        working-directory: .
+        run: |
+          task create-venv
+          eval "$(task venv)"
+          task install
+
+      - name: Set chart version
+        run: |
+          task set-chart-version
+
+      - name: Configure git
+        run: |
+          git config user.name "$GITHUB_ACTOR" # "github-actions[bot]"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com" # "github-actions[bot]@users.noreply.github.com"
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4.2.0
+
+      - name: Run chart-releaser
+        uses: helm/chart-releaser-action@v1.6.0
+        env:
+          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        with:
+          skip_existing: true
