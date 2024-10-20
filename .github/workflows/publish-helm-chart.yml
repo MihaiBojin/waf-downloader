@@ -54,21 +54,3 @@ jobs:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
         with:
           skip_existing: true
-    #   - name: Package Helm chart
-    #     run: |
-    #       helm package charts/waf-downloader --destination .
-
-    #   - name: Checkout the gh-pages branch
-    #     uses: actions/checkout@v4
-    #     with:
-    #       ref: gh-pages
-
-    #   - name: Update Helm repo index
-    #     run: |
-    #       helm repo index . --url https://MihaiBojin.github.io/waf-downloader  # Replace with your GitHub Pages URL
-
-    #   - name: Commit and push changes
-    #     run: |
-    #       git add .
-    #       git commit -m "Update Helm chart and index for version ${{ github.ref_name }}"
-    #       git push origin gh-pages
