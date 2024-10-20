@@ -1,0 +1,72 @@
+name: Publish Helm Chart to GitHub Pages
+
+on:
+  # Trigger only on v0.* tag pushes
+  push:
+    tags:
+      - "v0.*"
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  release-helm-chart:
+    runs-on: ubuntu-latest
+
+    # see: https://docs.github.com/en/actions/security-guides/automatic-token-authentication#modifying-the-permissions-for-the-github_token
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.39.2
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install dependencies
+        working-directory: .
+        run: |
+          task create-venv
+          eval "$(task venv)"
+          task install
+
+      - name: Set chart version
+        run: |
+          task set-chart-version
+
+      - name: Configure git
+        run: |
+          git config user.name "$GITHUB_ACTOR" # "github-actions[bot]"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com" # "github-actions[bot]@users.noreply.github.com"
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4.2.0
+
+      - name: Run chart-releaser
+        uses: helm/chart-releaser-action@v1.6.0
+        env:
+          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+    #   - name: Package Helm chart
+    #     run: |
+    #       helm package charts/waf-downloader --destination .
+
+    #   - name: Checkout the gh-pages branch
+    #     uses: actions/checkout@v4
+    #     with:
+    #       ref: gh-pages
+
+    #   - name: Update Helm repo index
+    #     run: |
+    #       helm repo index . --url https://MihaiBojin.github.io/waf-downloader  # Replace with your GitHub Pages URL
+
+    #   - name: Commit and push changes
+    #     run: |
+    #       git add .
+    #       git commit -m "Update Helm chart and index for version ${{ github.ref_name }}"
+    #       git push origin gh-pages
