@@ -13,6 +13,9 @@ helm repo update
 
 ```shell
 helm install -f config.yaml waf-downloader waf/waf-downloader
+
+# or upgrade
+helm upgrade waf-downloader waf/waf-downloader
 ```
 
 You must also provide a few configuration values, e.g.:
