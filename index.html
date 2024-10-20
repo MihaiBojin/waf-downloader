@@ -1,1 +1,30 @@
-Helm chart
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>WAF Downloader Helm Chart</title>
+    <meta name="description" content="Helm chart for the Cloudflare Web Application Firewall log downloader">
+    <link rel="stylesheet" href="styles.css"> <!-- Link to external CSS -->
+    <link rel="icon" href="favicon.ico" type="image/x-icon"> <!-- Favicon for the browser tab -->
+</head>
+<body>
+
+    <header>
+        <h1>Helm chart for the Cloudflare Web Application Firewall log downloader</h1>
+    </header>
+
+    <main>
+        <section id="section1">
+            <h2>Install the Helm chart in your cluster</h2>            
+            <p><pre>helm repo add waf https://mihaibojin.github.io/waf-downloader</pre></p>
+            <p><pre>helm install -f config.yaml waf-downloader waf/waf-downloader</pre></p>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Mihai Bojin</p>
+    </footer>
+</body>
+</html>
