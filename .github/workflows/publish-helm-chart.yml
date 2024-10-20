@@ -52,6 +52,8 @@ jobs:
         uses: helm/chart-releaser-action@v1.6.0
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        with:
+          skip_existing: true
     #   - name: Package Helm chart
     #     run: |
     #       helm package charts/waf-downloader --destination .
