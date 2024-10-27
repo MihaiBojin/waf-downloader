@@ -1,7 +1,7 @@
 # DEV requirements
 # keep-sorted start
 build ==1.2.2.post1
-pip ==24.3
+pip ==24.3.1
 pre-commit ==4.0.1
 pytest ==8.3.3
 toml == 0.10.2
