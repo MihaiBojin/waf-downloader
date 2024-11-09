@@ -15,10 +15,11 @@ VERSION="$(cat "$VERSION_FILE")"
 GITTAG="$(get_git_sha)"
 if [ -z "$(is_dirty)" ]; then
     # Working dir is clean, attempt to use tag
-    GITTAG="$(get_tag_at_head)"
+    TAG="$(get_tag_at_head)"
 
     # If git tag found, use it
-    if [ -n "$GITTAG" ]; then
+    if [ -n "$TAG" ]; then
+        GITTAG="$TAG"
         VERSION="$GITTAG"
     fi
 fi
