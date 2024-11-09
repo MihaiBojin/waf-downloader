@@ -27,6 +27,7 @@ def _perform_download(
         token=token,
         queries=["get_firewall_events", "get_firewall_events_ext"],
         start_time=start_time,
+        end_time=compute_time(at=None, delta_by_minutes=-1),
         sink=sink,
     )
     t1 = time.time() - t0

@@ -6,7 +6,7 @@ Cloudflare WAF logs downloader library
 
 from abc import ABC
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 import json
 import sys
 import time
@@ -153,12 +153,41 @@ def download_loop(
     token: str,
     queries: List[str],
     start_time: datetime,
+    end_time: datetime,
     sink: Output,
 ) -> datetime:
     """Loops and downloads all the logs in the configured interval."""
 
-    # Default to a past NN%5 minute to increase the chance of missing events due to lag
-    end_time = compute_time(at=None)
+    # Ensure we don't download logs from the future
+    # Always round down to the previous minute to avoid partial logs
+    end_time = min(end_time, compute_time(at=end_time, delta_by_minutes=-1))
+
+    # The Cloudflare API only allows for 315 days of logs to be downloaded
+    max_cloudflare_days = 15
+    allowed_start_mins = 1440 * max_cloudflare_days - 1
+    # Calculate a valid start time, allowing one minute to avoid errors due to proximity to the limit
+    if datetime.now(tz=timezone.utc) - start_time >= timedelta(
+        minutes=allowed_start_mins
+    ):
+        start_time = compute_time(at=None, delta_by_minutes=-allowed_start_mins)
+
+    # Compute time difference between start and end time
+    diff = end_time - start_time
+
+    # Recursively split downloads in 1 day intervals
+    if diff.total_seconds() > 86400:
+        # TODO: might need to do less than 1 day, to overlap downloads by a small amount (e.g. 1 minute)
+        #       to catch events around the end of the interval and not exported by the Cloudflare API
+        intervals = int(diff.total_seconds() // 86400)
+        print(f"Splitting downloads for multiple days: {intervals}", file=sys.stderr)
+
+        st = start_time
+        for i in range(intervals):
+            et = st + timedelta(days=i + 1)
+            print(f"Downloading logs for interval: {st} to {et}", file=sys.stderr)
+
+            # Download and mark the returned end time as the new start time
+            st = download_loop(zone_id, token, queries, st, et, sink)
 
     logs: List[List[WAF]] = list()
     for query in queries:

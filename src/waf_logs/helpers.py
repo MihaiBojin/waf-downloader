@@ -5,18 +5,16 @@ from typing import List, Optional
 
 
 def compute_time(at: Optional[datetime], delta_by_minutes: int = 0) -> datetime:
-    """Computes a time before the previous minute divisible by 5, by the specified duration.
-    If 'at' is None, compute the most recent timestamp (i.e., :00, :05, :10, etc.)
+    """Computes a time represented by the current minute, rounded down to 0 seconds.
+    If 'at' is None, the function will use the current time as basis for the computation.
+    'delta_by_minutes' allows for adding or subtracting minutes from the computed time.
     """
 
     if at is None:
         at = datetime.now(tz=timezone.utc)
 
-    # Round down to the previous minute, divisible by 5 (i.e, if time is currently :07:xx minutes, round down to :05:xx minutes)
-    target = at - timedelta(minutes=at.minute % 5)
-
     # Further round down to :xx:00
-    target = target.replace(second=0, microsecond=0)
+    target = at.replace(second=0, microsecond=0)
 
     # Add the desired minute interval
     # If delta_by_minutes is negative, this will add a negative interval, i.e., point the time to the past
