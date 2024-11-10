@@ -16,14 +16,20 @@ repos:
       # keep-sorted end
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.4.4
+    rev: v0.7.3
     hooks:
       - id: ruff
         args: ["--fix"]
       - id: ruff-format
 
+  - repo: https://github.com/PabloRMira/sql_formatter
+    rev: 0.6.2
+    hooks:
+      - id: sql_formatter
+        entry: sql-formatter --max-line-length=20
+
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.10.0
+    rev: v1.13.0
     hooks:
       - id: mypy
 
@@ -33,7 +39,7 @@ repos:
       - id: check-json5
 
   - repo: https://github.com/google/keep-sorted
-    rev: v0.4.0
+    rev: v0.5.1
     hooks:
       - id: keep-sorted
 
