@@ -8,7 +8,7 @@ from typing import Any, Callable, List, Optional
 from psycopg_pool import ConnectionPool
 
 from waf_logs import WAF
-from waf_logs.helpers import compute_time, list_files, read_file, validate_name
+from waf_logs.helpers import list_files, read_file, validate_name
 
 # Define a constant for the maximum number of retries
 EVENT_DOWNLOAD_TIME = "last_download_time"
@@ -142,8 +142,8 @@ class Database:
         return exec
 
     @staticmethod
-    def get_event(name: str) -> Callable[[Any], datetime]:
-        def get_row(conn: Any) -> datetime:
+    def get_event(name: str) -> Callable[[Any], Optional[datetime]]:
+        def get_row(conn: Any) -> Optional[datetime]:
             # Create a cursor object
             cur = conn.cursor()
             res: Optional[str] = None
@@ -166,11 +166,10 @@ class Database:
                     cur.close()
 
                 # Parse the datetime
-                if res:
-                    return datetime.fromisoformat(str(res[0]))
+                if not res:
+                    return None
 
-                # Default to -5 minutes, if event not found
-                return compute_time(at=None, delta_by_minutes=-5)
+                return datetime.fromisoformat(str(res[0]))
 
         return get_row
 

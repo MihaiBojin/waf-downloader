@@ -11,14 +11,13 @@ Functions:
 import sys
 from typing import Dict, List, Optional
 import requests
-from waf_logs.get_secret import get_secret
 from typing import NamedTuple
+from waf_logs import MAX_LOG_LIMIT
 from waf_logs.helpers import iso_to_datetime, read_file, validate_name
 from datetime import datetime
 
 # Define the endpoint URL
 URL = "https://api.cloudflare.com/client/v4/graphql"
-MAX_LOG_LIMIT = 10_000  # defined by the Cloudflare API
 
 
 class WAF(NamedTuple):
@@ -62,10 +61,6 @@ def get_waf_logs(
         "limit": MAX_LOG_LIMIT,
     }
 
-    # Load the Cloudflare token
-    if not cloudflare_token:
-        cloudflare_token = get_secret("CLOUDFLARE_API_TOKEN")
-
     # Define the headers
     headers = {
         "Content-Type": "application/json",
@@ -91,13 +86,11 @@ def get_waf_logs(
         raise RuntimeError(f"Errors were found: {data}")
 
     # Retrieve firewall events
-    # ~6700 / 5 minutes
     zones = data["data"]["viewer"]["zones"]
     result = [_event_row(event) for z in zones for event in z["firewallEventsAdaptive"]]
 
     return LogResult(
         logs=result,
-        # TODO(#3): Handle `last_event==intended_end_time && overflown`
         overflown=len(result) == MAX_LOG_LIMIT,
         last_event=iso_to_datetime(result[-1].datetime),
         intended_end_time=end_time,

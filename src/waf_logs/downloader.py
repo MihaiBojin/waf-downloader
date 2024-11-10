@@ -13,9 +13,9 @@ import time
 from typing import Any, List, NamedTuple, Optional
 
 from more_itertools import chunked
-from waf_logs import get_waf_logs
+from waf_logs import MAX_DAYS_AGO, MAX_LOG_LIMIT, MAX_LOG_WINDOW_SECONDS, get_waf_logs
 from waf_logs import WAF, LogResult
-from waf_logs.db import Database
+from waf_logs.db import EVENT_DOWNLOAD_TIME, Database
 from waf_logs.helpers import (
     compute_time,
     iso_to_datetime,
@@ -130,6 +130,11 @@ def fetch_logs(
             start_time=window.start,
             end_time=window.end,
         )
+        if result.overflown:
+            print(
+                f"Overflown at {result.last_event}, intended end time {result.intended_end_time}",
+                file=sys.stderr,
+            )
 
         print(
             f"Downloaded {len(result.logs)} logs up until {result.last_event}, overflown={result.overflown}",
@@ -148,65 +153,142 @@ def fetch_logs(
     return logs
 
 
+def _store_last_download_time(db: Database, start_time: datetime) -> None:
+    """Store the last download time in the database"""
+    if db is None:
+        # Nothing to do if DB is not initialized
+        return
+
+    db.pooled_exec(db.set_event(EVENT_DOWNLOAD_TIME, start_time))
+
+
 def download_loop(
     zone_id: str,
-    token: str,
-    queries: List[str],
-    start_time: datetime,
-    end_time: datetime,
-    sink: Output,
+    connection_string: Optional[str],
+    concurrency: int,
+    chunk_size: int,
+    ensure_schema: bool,
+    cloudflare_token: str,
+    cloudflare_queries: List[str],
+    start_time: Optional[datetime],
 ) -> datetime:
     """Loops and downloads all the logs in the configured interval."""
 
-    # Ensure we don't download logs from the future
-    # Always round down to the previous minute to avoid partial logs
-    end_time = min(end_time, compute_time(at=end_time, delta_by_minutes=-1))
+    # If a connection string is provided, use it to connect to the database
+    # and store outputs
+    sink: Output = DebugOutput()
+    db: Optional[Database] = None
+    if connection_string:
+        db = Database(connection_string, max_pool_size=concurrency)
+        if ensure_schema:
+            db.ensure_schema()
+
+        sink = DatabaseOutput(
+            db=Database(connection_string, max_pool_size=concurrency),
+            table_name="cf_waf_logs_adaptive",
+            chunk_size=chunk_size,
+        )
+
+    if start_time is None and db:
+        # If we don't have a start time, load it from the database
+        start_time = db.pooled_exec(db.get_event(EVENT_DOWNLOAD_TIME))
+
+    if start_time is not None:
+        print(f"Start time loaded from DB: {start_time}", file=sys.stderr)
+
+    else:
+        # If a start time was not defined, default to 5 minutes ago
+        start_time = compute_time(at=None, delta_by_minutes=-5)
+        print(f"Defaulting start time to: {start_time}", file=sys.stderr)
 
     # The Cloudflare API only allows for 315 days of logs to be downloaded
-    max_cloudflare_days = 15
-    allowed_start_mins = 1440 * max_cloudflare_days - 1
+    allowed_start_mins = 1440 * MAX_DAYS_AGO - 1
     # Calculate a valid start time, allowing one minute to avoid errors due to proximity to the limit
     if datetime.now(tz=timezone.utc) - start_time >= timedelta(
         minutes=allowed_start_mins
     ):
         start_time = compute_time(at=None, delta_by_minutes=-allowed_start_mins)
+        print(
+            f"Start time is too far in the past, setting to {start_time}",
+            file=sys.stderr,
+        )
 
-    # Compute time difference between start and end time
-    diff = end_time - start_time
+    # Always round down to the previous minute to avoid partial logs
+    end_time = compute_time(at=None, delta_by_minutes=-1)
 
-    # Recursively split downloads in 1 day intervals
-    if diff.total_seconds() > 86400:
-        # TODO: might need to do less than 1 day, to overlap downloads by a small amount (e.g. 1 minute)
-        #       to catch events around the end of the interval and not exported by the Cloudflare API
-        intervals = int(diff.total_seconds() // 86400)
-        print(f"Splitting downloads for multiple days: {intervals}", file=sys.stderr)
+    # Initialize window size to 1 day in seconds
+    window_size = MAX_LOG_WINDOW_SECONDS
+    current_time = start_time
+    last_observed_time = current_time
 
-        st = start_time
-        for i in range(intervals):
-            et = st + timedelta(days=i + 1)
-            print(f"Downloading logs for interval: {st} to {et}", file=sys.stderr)
+    while current_time < end_time:
+        # Calculate the window end, not exceeding the overall end_time
+        window_end = min(current_time + timedelta(seconds=window_size), end_time)
+        print(f"Processing window: {current_time} to {window_end}", file=sys.stderr)
 
-            # Download and mark the returned end time as the new start time
-            st = download_loop(zone_id, token, queries, st, et, sink)
+        # Download logs for all queries in this window
+        window_logs: List[List[WAF]] = []
+        overflown = False
+        for query in cloudflare_queries:
+            result: LogResult = get_waf_logs(
+                zone_tag=zone_id,
+                cloudflare_token=cloudflare_token,
+                query=query,
+                start_time=current_time,
+                end_time=window_end,
+            )
 
-    logs: List[List[WAF]] = list()
-    for query in queries:
-        logs.append(fetch_logs(zone_id, token, query, start_time, end_time))
+            if result.overflown:
+                overflown = True
+                # If the result is overflown, we can't trust it
+                window_size //= 2
+                print(
+                    f"Overflown at {result.last_event}, intended end time {result.intended_end_time}, retrying with window size {window_size}",
+                    file=sys.stderr,
+                )
 
-    rows = merge_logs(logs)
+                # If overflown, break out of the query loop
+                break
 
-    # Repackage as a LogResult to pass metadata to the sink
-    result = LogResult(
-        logs=rows,
-        overflown=False,
-        last_event=iso_to_datetime(rows[-1].datetime),  # last event's time
-        intended_end_time=end_time,  # originally intended end time
-    )
+            window_logs.append(result.logs)
 
-    # Store results
-    sink.save(result)
+        if overflown:
+            # If overflown, retry with smaller window
+            continue
 
-    return end_time
+        # Merge logs from different queries
+        merged_logs = merge_logs(window_logs)
+        total_rows = len(merged_logs)
+        print(f"Retrieved {total_rows} rows", file=sys.stderr)
+
+        # Determine if the window is too small, but do so while de-risking overflown results
+        if total_rows < MAX_LOG_LIMIT // 3:
+            window_size = min(2 * window_size, MAX_LOG_WINDOW_SECONDS)
+            print(
+                f"Few rows, increasing next window to {window_size} seconds",
+                file=sys.stderr,
+            )
+
+        if total_rows > 0:
+            # Repackage as a LogResult to pass metadata to the sink
+            result = LogResult(
+                logs=merged_logs,
+                overflown=False,
+                last_event=iso_to_datetime(merged_logs[-1].datetime),
+                intended_end_time=window_end,
+            )
+            sink.save(result)
+            last_observed_time = result.last_event
+
+        # Move to next window
+        current_time = window_end
+
+        # Store the last processed time
+        if db is not None:
+            _store_last_download_time(db, window_end)
+
+    # Return the last processed time
+    return last_observed_time
 
 
 def compute_next_window(
