@@ -21,7 +21,6 @@ from waf_logs.helpers import (
     iso_to_datetime,
     validate_name,
 )
-from queue import Queue
 
 
 class TimeWindow(NamedTuple):
@@ -107,52 +106,6 @@ class DatabaseOutput(Output):
         )
 
 
-def fetch_logs(
-    zone_id: str,
-    token: str,
-    query: str,
-    start_time: datetime,
-    end_time: datetime,
-) -> List[WAF]:
-    """Fetch WAF logs from the Cloudflare API, up to the most recent timestamp."""
-
-    # Add the initial interval
-    q: Queue[TimeWindow] = Queue()
-    q.put(TimeWindow(start_time, end_time))
-
-    logs: List[WAF] = list()
-    while not q.empty():
-        window = q.get()
-        result = get_waf_logs(
-            zone_tag=zone_id,
-            cloudflare_token=token,
-            query=query,
-            start_time=window.start,
-            end_time=window.end,
-        )
-        if result.overflown:
-            print(
-                f"Overflown at {result.last_event}, intended end time {result.intended_end_time}",
-                file=sys.stderr,
-            )
-
-        print(
-            f"Downloaded {len(result.logs)} logs up until {result.last_event}, overflown={result.overflown}",
-            file=sys.stderr,
-        )
-        logs += result.logs
-
-        # Determine the next window
-        next_window = compute_next_window(result, window.start)
-        if next_window is None:
-            continue
-
-        # process the remainder of the interval
-        q.put(next_window)
-
-    return logs
-
-
 def _store_last_download_time(db: Database, start_time: datetime) -> None:
     """Store the last download time in the database"""
     if db is None:
@@ -160,6 +113,25 @@ def _store_last_download_time(db: Database, start_time: datetime) -> None:
         return
 
     db.pooled_exec(db.set_event(EVENT_DOWNLOAD_TIME, start_time))
+
+
+def _box_start_time(start_time: datetime) -> datetime:
+    """Ensure that the start time is a valid time for the Cloudflare API"""
+
+    # The Cloudflare API only allows for 15 days of logs to be downloaded
+    allowed_start_mins = 1440 * MAX_DAYS_AGO
+
+    # Calculate a valid start time, allowing one minute to avoid errors due to proximity to the limit
+    if datetime.now(tz=timezone.utc) - start_time >= timedelta(
+        minutes=allowed_start_mins - 1
+    ):
+        start_time = compute_time(at=None, delta_by_minutes=-allowed_start_mins + 1)
+        print(
+            f"Start time is too far in the past, setting to {start_time}",
+            file=sys.stderr,
+        )
+
+    return start_time
 
 
 def download_loop(
@@ -201,27 +173,18 @@ def download_loop(
         start_time = compute_time(at=None, delta_by_minutes=-5)
         print(f"Defaulting start time to: {start_time}", file=sys.stderr)
 
-    # The Cloudflare API only allows for 315 days of logs to be downloaded
-    allowed_start_mins = 1440 * MAX_DAYS_AGO - 1
-    # Calculate a valid start time, allowing one minute to avoid errors due to proximity to the limit
-    if datetime.now(tz=timezone.utc) - start_time >= timedelta(
-        minutes=allowed_start_mins
-    ):
-        start_time = compute_time(at=None, delta_by_minutes=-allowed_start_mins)
-        print(
-            f"Start time is too far in the past, setting to {start_time}",
-            file=sys.stderr,
-        )
-
     # Always round down to the previous minute to avoid partial logs
     end_time = compute_time(at=None, delta_by_minutes=-1)
 
     # Initialize window size to 1 day in seconds
     window_size = MAX_LOG_WINDOW_SECONDS
-    current_time = start_time
+    current_time: datetime = start_time
     last_observed_time = current_time
 
     while current_time < end_time:
+        # Ensure that the current time is a valid time for the Cloudflare API
+        current_time = _box_start_time(current_time)
+
         # Calculate the window end, not exceeding the overall end_time
         window_end = min(current_time + timedelta(seconds=window_size), end_time)
         print(f"Processing window: {current_time} to {window_end}", file=sys.stderr)
@@ -243,7 +206,7 @@ def download_loop(
                 # If the result is overflown, we can't trust it
                 window_size //= 2
                 print(
-                    f"Overflown at {result.last_event}, intended end time {result.intended_end_time}, retrying with window size {window_size}",
+                    f"Overflown at {result.last_event} ({len(result.logs)} logs), intended end time {result.intended_end_time}, retrying with window size {window_size}",
                     file=sys.stderr,
                 )
 
@@ -257,7 +220,7 @@ def download_loop(
             continue
 
         # Merge logs from different queries
-        merged_logs = merge_logs(window_logs)
+        merged_logs = _merge_logs(window_logs)
         total_rows = len(merged_logs)
         print(f"Retrieved {total_rows} rows", file=sys.stderr)
 
@@ -291,39 +254,7 @@ def download_loop(
     return last_observed_time
 
 
-def compute_next_window(
-    result: LogResult, current_start_time: Optional[datetime]
-) -> Optional[TimeWindow]:
-    """Compute the next time window."""
-
-    if result.overflown:
-        # Since we overflowed, process the rest of the interval
-        start_time = result.last_event
-        end_time = result.intended_end_time
-
-        # prevent the loop getting stuck by too many events generated
-        # exactly on the start of the datetime window
-        if current_start_time == start_time:
-            print(
-                f"Download seems stuck at ({start_time}; offsetting by +1 minute and skipping some logs",
-                file=sys.stderr,
-            )
-            # in which case advance by a minute
-            start_time = compute_time(start_time, +1)
-
-    else:
-        # Compute the most recent window
-        start_time = result.intended_end_time
-        end_time = compute_time(at=None)
-
-        # If we have caught up, exit the loop
-        if start_time == end_time:
-            return None
-
-    return TimeWindow(start_time, end_time)
-
-
-def merge_logs(logs: List[List[WAF]]) -> List[WAF]:
+def _merge_logs(logs: List[List[WAF]]) -> List[WAF]:
     """Create a merged set of WAF logs from multiple queries.
     For now, this implementation will do, however, it can be
     replaced with an n-way merged sort, modified to handle object

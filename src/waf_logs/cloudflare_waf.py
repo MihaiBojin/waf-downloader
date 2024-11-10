@@ -12,7 +12,7 @@ import sys
 from typing import Dict, List, Optional
 import requests
 from typing import NamedTuple
-from waf_logs import MAX_LOG_LIMIT
+from waf_logs.constants import MAX_LOG_LIMIT
 from waf_logs.helpers import iso_to_datetime, read_file, validate_name
 from datetime import datetime
 

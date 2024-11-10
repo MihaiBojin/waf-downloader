@@ -2,7 +2,7 @@ from typing import Any, Dict
 import unittest
 
 from waf_logs.cloudflare_waf import WAF
-from waf_logs.downloader import merge_logs
+from waf_logs.downloader import _merge_logs
 
 
 class TestMergeLogs(unittest.TestCase):
@@ -22,7 +22,7 @@ class TestMergeLogs(unittest.TestCase):
 
         # ACT
         results = [result1, result2, result3]
-        result = merge_logs(results)
+        result = _merge_logs(results)
 
         # ASSERT
         expected = [

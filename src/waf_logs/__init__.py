@@ -1,22 +1,18 @@
 """
-A Python package template
-=========================
+Cloudflare WAF logs downloader
+==============================
 """
 
 from .helpers import compute_time, iso_to_datetime
 from .cloudflare_waf import get_waf_logs, WAF, LogResult
-
-# The Cloudflare API allows for 10,000 log lines to be downloaded at a time
-MAX_LOG_LIMIT = 10_000
-# The Cloudflare API only allows for 15 days of logs to be downloaded
-MAX_DAYS_AGO = 15
-# The Cloudflare API allows for maximum 1 day to be downloaded at a time
-MAX_LOG_WINDOW_SECONDS = 86400
+from .constants import MAX_LOG_LIMIT, MAX_DAYS_AGO, MAX_LOG_WINDOW_SECONDS
 
 __all__ = [
     # keep-sorted start
     "LogResult",
+    "MAX_DAYS_AGO",
     "MAX_LOG_LIMIT",
+    "MAX_LOG_WINDOW_SECONDS",
     "WAF",
     "compute_time",
     "get_waf_logs",
