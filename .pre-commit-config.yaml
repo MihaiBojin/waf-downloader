@@ -22,12 +22,6 @@ repos:
         args: ["--fix"]
       - id: ruff-format
 
-  - repo: https://github.com/PabloRMira/sql_formatter
-    rev: 0.6.2
-    hooks:
-      - id: sql_formatter
-        entry: sql-formatter --max-line-length=20
-
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.13.0
     hooks:

@@ -1,6 +1,8 @@
-CREATE TABLE
-    IF NOT EXISTS events (
-        name VARCHAR(64) PRIMARY KEY,
-        "datetime" TIMESTAMP WITH time zone NOT NULL,
-        UNIQUE (name)
+create table
+    if not exists events (
+        name varchar(64) primary key,
+        "datetime" timestamp
+        with
+            time zone not null,
+            unique (name)
     );
