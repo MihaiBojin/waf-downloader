@@ -10,7 +10,7 @@ from datetime import datetime, timedelta, timezone
 import json
 import sys
 import time
-from typing import Any, List, NamedTuple, Optional
+from typing import Any, List, NamedTuple, Optional, Tuple
 
 from more_itertools import chunked
 from waf_logs import MAX_DAYS_AGO, MAX_LOG_LIMIT, MAX_LOG_WINDOW_SECONDS, get_waf_logs
@@ -113,10 +113,6 @@ class DatabaseOutput(Output):
 
 def _store_last_download_time(db: Database, zone_id: str, at: datetime) -> None:
     """Store the last download time in the database"""
-    if db is None:
-        # Nothing to do if DB is not initialized
-        return
-
     db.pooled_exec(
         db.set_event(
             name=EVENT_DOWNLOAD_TIME,
@@ -124,6 +120,7 @@ def _store_last_download_time(db: Database, zone_id: str, at: datetime) -> None:
             event_time=at,
         )
     )
+    print(f"Saved last download time for zone {zone_id}: {at}", file=sys.stderr)
 
 
 def _box_start_time(start_time: datetime) -> datetime:
@@ -145,17 +142,13 @@ def _box_start_time(start_time: datetime) -> datetime:
     return start_time
 
 
-def download_loop(
-    zone_id: str,
+def initialize(
     connection_string: Optional[str],
     concurrency: int,
     chunk_size: int,
     ensure_schema: bool,
-    cloudflare_token: str,
-    cloudflare_queries: List[str],
-    start_time: Optional[datetime],
-) -> datetime:
-    """Loops and downloads all the logs in the configured interval."""
+) -> Tuple[Output, Optional[Database]]:
+    """Initialize the downloader's sink and database, depending on the provided configuration."""
 
     # If a connection string is provided, use it to connect to the database
     # and store outputs
@@ -172,6 +165,19 @@ def download_loop(
             chunk_size=chunk_size,
         )
 
+    return sink, db
+
+
+def download_loop(
+    sink: Output,
+    db: Optional[Database],
+    zone_id: str,
+    cloudflare_token: str,
+    cloudflare_queries: List[str],
+    start_time: Optional[datetime],
+) -> datetime:
+    """Loops and downloads all the logs in the configured interval."""
+
     if start_time is None and db:
         # If we don't have a start time, load it from the database
         start_time = db.pooled_exec(
@@ -179,7 +185,10 @@ def download_loop(
         )
 
     if start_time is not None:
-        print(f"Start time loaded from DB: {start_time}", file=sys.stderr)
+        print(
+            f"Loaded last download time for zone {zone_id} from DB: {start_time}",
+            file=sys.stderr,
+        )
 
     else:
         # If a start time was not defined, default to 5 minutes ago
@@ -237,8 +246,9 @@ def download_loop(
         total_rows = len(merged_logs)
         print(f"Retrieved {total_rows} rows", file=sys.stderr)
 
-        # Determine if the window is too small, but do so while de-risking overflown results
-        if total_rows < MAX_LOG_LIMIT // 3:
+        # Determine if the window is too small
+        # but do so while respecting the Cloudflare API limit
+        if window_size < MAX_LOG_WINDOW_SECONDS and total_rows < MAX_LOG_LIMIT // 3:
             window_size = min(2 * window_size, MAX_LOG_WINDOW_SECONDS)
             print(
                 f"Few rows, increasing next window to {window_size} seconds",
