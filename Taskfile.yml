@@ -45,7 +45,7 @@ tasks:
   lint:
     cmds:
       - echo "Running linters..." >&2
-      - pre-commit run --all-files --verbose
+      - pre-commit run --all-files
 
   test:
     cmds:

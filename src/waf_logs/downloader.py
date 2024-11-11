@@ -111,13 +111,19 @@ class DatabaseOutput(Output):
         )
 
 
-def _store_last_download_time(db: Database, start_time: datetime) -> None:
+def _store_last_download_time(db: Database, zone_id: str, at: datetime) -> None:
     """Store the last download time in the database"""
     if db is None:
         # Nothing to do if DB is not initialized
         return
 
-    db.pooled_exec(db.set_event(EVENT_DOWNLOAD_TIME, start_time))
+    db.pooled_exec(
+        db.set_event(
+            name=EVENT_DOWNLOAD_TIME,
+            zone_id=zone_id,
+            event_time=at,
+        )
+    )
 
 
 def _box_start_time(start_time: datetime) -> datetime:
@@ -168,7 +174,9 @@ def download_loop(
 
     if start_time is None and db:
         # If we don't have a start time, load it from the database
-        start_time = db.pooled_exec(db.get_event(EVENT_DOWNLOAD_TIME))
+        start_time = db.pooled_exec(
+            db.get_event(name=EVENT_DOWNLOAD_TIME, zone_id=zone_id)
+        )
 
     if start_time is not None:
         print(f"Start time loaded from DB: {start_time}", file=sys.stderr)
@@ -253,7 +261,7 @@ def download_loop(
 
         # Store the last processed time
         if db is not None:
-            _store_last_download_time(db, window_end)
+            _store_last_download_time(db=db, zone_id=zone_id, at=window_end)
 
     # Return the last processed time
     return last_observed_time

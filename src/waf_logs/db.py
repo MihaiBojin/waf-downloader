@@ -109,7 +109,9 @@ class Database:
         return _execute
 
     @staticmethod
-    def set_event(name: str, event_time: datetime) -> Callable[[Any], None]:
+    def set_event(
+        name: str, zone_id: str, event_time: datetime
+    ) -> Callable[[Any], None]:
         def exec(conn: Any) -> None:
             # Create a cursor object
             cur = conn.cursor()
@@ -117,20 +119,22 @@ class Database:
             try:
                 # Insert JSON data into the table
                 update_query = """
-                INSERT INTO events (name, datetime)
-                VALUES (%s, %s)
-                ON CONFLICT (name)
+                INSERT INTO events (name, zone_id, datetime)
+                VALUES (%s, %s, %s)
+                ON CONFLICT (zone_id, name)
                 DO UPDATE SET datetime = EXCLUDED.datetime
                 """
 
                 try:
-                    cur.execute(update_query, (name, event_time))
+                    cur.execute(update_query, (name, zone_id, event_time))
                     conn.commit()
-                    print(f"Event '{name}' set to {event_time}", file=sys.stderr)
+                    print(
+                        f"Event '{name}/{zone_id}' set to {event_time}", file=sys.stderr
+                    )
 
                 except Exception as e:
                     print(
-                        f"Failed to set event '{name}' to {event_time}: {e}",
+                        f"Failed to set event '{name}/{zone_id}' to {event_time}: {e}",
                         file=sys.stderr,
                     )
                     conn.rollback()  # Roll back the transaction before retrying
@@ -142,7 +146,7 @@ class Database:
         return exec
 
     @staticmethod
-    def get_event(name: str) -> Callable[[Any], Optional[datetime]]:
+    def get_event(name: str, zone_id: str) -> Callable[[Any], Optional[datetime]]:
         def get_row(conn: Any) -> Optional[datetime]:
             # Create a cursor object
             cur = conn.cursor()
@@ -150,15 +154,21 @@ class Database:
             try:
                 # Insert JSON data into the table
                 select_query = """
-                SELECT datetime FROM events WHERE name = %s LIMIT 1;
+                SELECT datetime FROM events WHERE name = %s AND zone_id = %s LIMIT 1;
                 """
 
-                cur.execute(select_query, (name,))
+                cur.execute(
+                    select_query,
+                    (
+                        name,
+                        zone_id,
+                    ),
+                )
                 res = cur.fetchone()
                 conn.commit()
 
             except Exception as e:
-                print(f"Failed to get event '{name}': {e}", file=sys.stderr)
+                print(f"Failed to get event '{name}/{zone_id}': {e}", file=sys.stderr)
 
             finally:
                 # Close the cursor

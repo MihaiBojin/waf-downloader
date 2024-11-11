@@ -9,7 +9,7 @@ from datetime import datetime, timedelta, timezone
 import multiprocessing
 import os
 import time
-from typing import Optional
+from typing import List, Optional
 from dotenv import load_dotenv
 
 from waf_logs.downloader import download_loop
@@ -28,7 +28,8 @@ def main() -> None:
         "--zone_id",
         type=str,
         required=True,
-        help="Cloudflare zone_id for which to download the logs",
+        nargs="+",
+        help="One or more Cloudflare zone_ids for which to download the logs",
     )
     parser.add_argument(
         "--start_time",
@@ -71,7 +72,7 @@ def main() -> None:
     )
 
     args = parser.parse_args()
-    zone_id = args.zone_id
+    zones: List[str] = args.zone_id
 
     # Determine the earliest time to download logs for
     start_time = args.start_time
@@ -104,20 +105,27 @@ def main() -> None:
         # If the --follow flag was not specified, this loop only run once
         can_run = do_follow
 
-        end_time = download_loop(
-            zone_id=zone_id,
-            connection_string=connection_string,
-            concurrency=concurrency,
-            chunk_size=chunk_size,
-            ensure_schema=ensure_schema,
-            cloudflare_token=token,
-            cloudflare_queries=["get_firewall_events", "get_firewall_events_ext"],
-            start_time=start_time,
-        )
+        last_time: Optional[datetime] = None
+        for zone_id in zones:
+            et = download_loop(
+                zone_id=zone_id,
+                connection_string=connection_string,
+                concurrency=concurrency,
+                chunk_size=chunk_size,
+                ensure_schema=ensure_schema,
+                cloudflare_token=token,
+                cloudflare_queries=["get_firewall_events", "get_firewall_events_ext"],
+                start_time=start_time,
+            )
+            # Store the earliest observed time
+            last_time = et if last_time is None else min(last_time, et)
 
         # If the end time is close to the current time, sleep for a minute to avoid
         # downloading the same logs repeatedly
-        if can_run and datetime.now(tz=timezone.utc) - end_time < timedelta(minutes=1):
+        if can_run and (
+            last_time is None
+            or datetime.now(tz=timezone.utc) - last_time < timedelta(minutes=1)
+        ):
             time.sleep(60)
 
 
