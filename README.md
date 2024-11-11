@@ -75,6 +75,16 @@ task docker-run -- --zone_id $CLOUDFLARE_ZONE_ID --start_minutes_ago 5 2>/dev/nu
 # This functionality makes it easy to run waf-downloader as a cron job
 # NOTE: specifying --start_minutes_ago will always override the timestamp stored in the database, causing potential gaps in the data
 task docker-run -- --zone_id $CLOUDFLARE_ZONE_ID
+
+# Do not exit and keep downloading new logs forever
+# These will be recent up to the last minute
+task docker-run -- --zone_id $CLOUDFLARE_ZONE_ID --follow
+
+# Multiple zones can be specified via a comma-separated string
+task docker-run -- --zone_id zone1,zone2,zone3
+
+# Or by repeating the flag
+task docker-run -- --zone_id zone1 --zone_id zone2 --zone_id zone3
 ```
 
 ## Publishing to PyPI
