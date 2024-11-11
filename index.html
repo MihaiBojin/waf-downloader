@@ -19,14 +19,14 @@
         <section id="section1">
             <h2>Install the Helm chart in your cluster</h2>            
             <p><pre>helm repo add waf https://mihaibojin.github.io/waf-downloader</pre></p>
-            <p><pre>helm install -f config.yaml waf-downloader waf/waf-downloader</pre></p>
+            <p><pre>helm install -n default -f config.yaml waf-downloader waf/waf-downloader</pre></p>
             <p>
                 You must also provide several configuration values, e.g.:<br/>
                 <pre>
                     # config.yaml
                     cloudflare:
                       apiToken: <CLOUDFLARE_API_TOKEN> # Specifies the Cloudflare API token
-                      zoneId: <CLOUDFLARE_ZONE_ID> # Specifies the zone to download logs from
+                      zoneIds: <CLOUDFLARE_ZONE_IDS> # Specifies the zone (or comma-separated list of zones) to download logs from
                     outputs:
                       dbConnStr: <POSTGRES_CONNECTION_STRING> # Specifies a Postgres endpoint to send the logs to
                 </pre>
