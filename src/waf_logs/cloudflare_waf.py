@@ -21,7 +21,8 @@ URL = "https://api.cloudflare.com/client/v4/graphql"
 
 
 class WAF(NamedTuple):
-    rayName: str
+    rayname: str
+    zone_id: str
     datetime: str
     data: Dict[str, str]
 
@@ -87,7 +88,11 @@ def get_waf_logs(
 
     # Retrieve firewall events
     zones = data["data"]["viewer"]["zones"]
-    result = [_event_row(event) for z in zones for event in z["firewallEventsAdaptive"]]
+    result = [
+        _event_row(event, zone_tag)
+        for z in zones
+        for event in z["firewallEventsAdaptive"]
+    ]
 
     return LogResult(
         logs=result,
@@ -97,11 +102,12 @@ def get_waf_logs(
     )
 
 
-def _event_row(event: Dict[str, str]) -> WAF:
+def _event_row(event: Dict[str, str], zone_id: str) -> WAF:
     """Extracts interesting fields out of events."""
 
     return WAF(
-        rayName=event["rayName"],
+        rayname=event["rayName"],
+        zone_id=zone_id,
         datetime=event["datetime"],
         data=event,
     )

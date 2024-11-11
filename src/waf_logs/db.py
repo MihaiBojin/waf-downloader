@@ -175,7 +175,7 @@ class Database:
 
     @staticmethod
     def insert_bulk(
-        data: List[WAF], table_name: str, max_retries: int = 3
+        data: List[WAF], zone_id: str, table_name: str, max_retries: int = 3
     ) -> Callable[[Any], Any]:
         """Inserts a chunk of records in bulk, into the specified table."""
 
@@ -185,7 +185,8 @@ class Database:
             """Returns a row tuple to be inserted into a table."""
 
             return (
-                data.rayName,
+                data.rayname,
+                zone_id,
                 data.datetime,
                 json.dumps(data.data),
             )
@@ -202,9 +203,9 @@ class Database:
             try:
                 # Insert JSON data into the table
                 insert_query = f"""
-                INSERT INTO {table_name} (rayName, datetime, data)
-                VALUES (%s, %s, %s)
-                ON CONFLICT (rayName) DO NOTHING
+                INSERT INTO {table_name} (rayname, zone_id, datetime, data)
+                VALUES (%s, %s, %s, %s)
+                ON CONFLICT (zone_id, rayname, datetime) DO NOTHING
                 ;
                 """
 

@@ -33,7 +33,7 @@ class TimeWindow(NamedTuple):
 class Output(ABC):
     """Base class for all output classes."""
 
-    def save(self, result: LogResult):
+    def save(self, zone_id: str, result: LogResult):
         """Saves the result."""
         pass
 
@@ -41,12 +41,15 @@ class Output(ABC):
 class DebugOutput(Output):
     """Class that outputs results to stdout."""
 
-    def save(self, result: LogResult):
+    def save(self, zone_id: str, result: LogResult):
         """Saves the result to a Database."""
 
         for log in result.logs:
             # Print logs to stdout
-            print(json.dumps(log.data), file=sys.stdout)
+            # Convert WAF object to dict for JSON serialization
+            print(
+                json.dumps({"zone_id": log.zone_id, "data": log.data}), file=sys.stdout
+            )
 
 
 class DatabaseOutput(Output):
@@ -59,17 +62,19 @@ class DatabaseOutput(Output):
         self.table_name: str = table_name
         self.chunk_size = chunk_size
 
-    def save(self, result: LogResult):
+    def save(self, zone_id: str, result: LogResult):
         """Stores the results to a DB using a ThreadPoolExecutor."""
 
         def _exec(chunk: List[WAF]) -> Any:
             """Pools the chunk insert."""
 
             results = self.db.pooled_exec(
-                Database.insert_bulk(data=chunk, table_name=self.table_name)
+                Database.insert_bulk(
+                    data=chunk,
+                    zone_id=zone_id,
+                    table_name=self.table_name,
+                )
             )
-
-            self.db.pooled_exec(Database.get_event("last_downloaded_time"))
 
             # Print stats and approximate duration
             duration, _, all_rows, total_bytes = results
@@ -240,7 +245,7 @@ def download_loop(
                 last_event=iso_to_datetime(merged_logs[-1].datetime),
                 intended_end_time=window_end,
             )
-            sink.save(result)
+            sink.save(zone_id=zone_id, result=result)
             last_observed_time = result.last_event
 
         # Move to next window
@@ -261,11 +266,11 @@ def _merge_logs(logs: List[List[WAF]]) -> List[WAF]:
     join case.
     """
 
-    # for each unique pair of rayName and datetime, merge the data
+    # for each unique pair of rayname and datetime, merge the data
     merged = dict()
     for log in logs:
         for w in log:
-            key = (w.rayName, w.datetime)
+            key = (w.rayname, w.datetime)
             if key not in merged:
                 merged[key] = w
             else:

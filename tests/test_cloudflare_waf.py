@@ -28,28 +28,32 @@ class TestMergeLogs(unittest.TestCase):
         expected = [
             _wrap(
                 {
-                    "rayName": "ray1",
+                    "rayname": "ray1",
+                    "zone_id": "zone1",
                     "datetime": "2021-01-01T00:00:00Z",
                     "data": {"field1": "value1"},
                 }
             ),
             _wrap(
                 {
-                    "rayName": "ray2",
+                    "rayname": "ray2",
+                    "zone_id": "zone1",
                     "datetime": "2021-01-01T00:00:00Z",
                     "data": {"field2": "value2", "field21": "value21"},
                 }
             ),
             _wrap(
                 {
-                    "rayName": "ray3",
+                    "rayname": "ray3",
+                    "zone_id": "zone1",
                     "datetime": "2021-01-01T00:00:00Z",
                     "data": {"field3": "value3"},
                 }
             ),
             _wrap(
                 {
-                    "rayName": "ray4",
+                    "rayname": "ray4",
+                    "zone_id": "zone1",
                     "datetime": "2021-01-01T00:00:00Z",
                     "data": {"field4": "value4"},
                 }
@@ -61,7 +65,8 @@ class TestMergeLogs(unittest.TestCase):
 
 def _data(id: str, dt: str, field_name: str, value: str) -> WAF:
     data = {
-        "rayName": id,
+        "rayname": id,
+        "zone_id": "zone1",
         "datetime": dt,
         "data": {field_name: value},
     }
@@ -71,7 +76,9 @@ def _data(id: str, dt: str, field_name: str, value: str) -> WAF:
 
 def _wrap(data: Dict[str, Any]) -> WAF:
     values = data["data"]
-    return WAF(str(data["rayName"]), str(data["datetime"]), data=values)
+    return WAF(
+        str(data["rayname"]), str(data["zone_id"]), str(data["datetime"]), data=values
+    )
 
 
 if __name__ == "__main__":
