@@ -57,7 +57,7 @@ def main() -> None:
     parser.add_argument(
         "--chunk_size",
         type=int,
-        default=1000,
+        default=10000,
         help="The chunk size used for bulk inserts",
     )
     parser.add_argument(
