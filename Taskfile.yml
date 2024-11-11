@@ -29,6 +29,7 @@ tasks:
       - scripts/create-venv.bash
 
   install:
+    deps: [create-venv]
     cmds:
       - echo "Installing packages in editable mode..." >&2
       - python -m pip install -e ".[dev]" # toml
