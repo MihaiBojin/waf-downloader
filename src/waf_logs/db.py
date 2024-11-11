@@ -8,7 +8,7 @@ from typing import Any, Callable, List, Optional
 from psycopg_pool import ConnectionPool
 
 from waf_logs import WAF
-from waf_logs.helpers import compute_time, list_files, read_file, validate_name
+from waf_logs.helpers import list_files, read_file, validate_name
 
 # Define a constant for the maximum number of retries
 EVENT_DOWNLOAD_TIME = "last_download_time"
@@ -109,7 +109,9 @@ class Database:
         return _execute
 
     @staticmethod
-    def set_event(name: str, event_time: datetime) -> Callable[[Any], None]:
+    def set_event(
+        name: str, zone_id: str, event_time: datetime
+    ) -> Callable[[Any], None]:
         def exec(conn: Any) -> None:
             # Create a cursor object
             cur = conn.cursor()
@@ -117,20 +119,22 @@ class Database:
             try:
                 # Insert JSON data into the table
                 update_query = """
-                INSERT INTO events (name, datetime)
-                VALUES (%s, %s)
-                ON CONFLICT (name)
+                INSERT INTO events (name, zone_id, datetime)
+                VALUES (%s, %s, %s)
+                ON CONFLICT (zone_id, name)
                 DO UPDATE SET datetime = EXCLUDED.datetime
                 """
 
                 try:
-                    cur.execute(update_query, (name, event_time))
+                    cur.execute(update_query, (name, zone_id, event_time))
                     conn.commit()
-                    print(f"Event '{name}' set to {event_time}", file=sys.stderr)
+                    print(
+                        f"Event '{name}/{zone_id}' set to {event_time}", file=sys.stderr
+                    )
 
                 except Exception as e:
                     print(
-                        f"Failed to set event '{name}' to {event_time}: {e}",
+                        f"Failed to set event '{name}/{zone_id}' to {event_time}: {e}",
                         file=sys.stderr,
                     )
                     conn.rollback()  # Roll back the transaction before retrying
@@ -142,23 +146,29 @@ class Database:
         return exec
 
     @staticmethod
-    def get_event(name: str) -> Callable[[Any], datetime]:
-        def get_row(conn: Any) -> datetime:
+    def get_event(name: str, zone_id: str) -> Callable[[Any], Optional[datetime]]:
+        def get_row(conn: Any) -> Optional[datetime]:
             # Create a cursor object
             cur = conn.cursor()
             res: Optional[str] = None
             try:
                 # Insert JSON data into the table
                 select_query = """
-                SELECT datetime FROM events WHERE name = %s LIMIT 1;
+                SELECT datetime FROM events WHERE name = %s AND zone_id = %s LIMIT 1;
                 """
 
-                cur.execute(select_query, (name,))
+                cur.execute(
+                    select_query,
+                    (
+                        name,
+                        zone_id,
+                    ),
+                )
                 res = cur.fetchone()
                 conn.commit()
 
             except Exception as e:
-                print(f"Failed to get event '{name}': {e}", file=sys.stderr)
+                print(f"Failed to get event '{name}/{zone_id}': {e}", file=sys.stderr)
 
             finally:
                 # Close the cursor
@@ -166,17 +176,16 @@ class Database:
                     cur.close()
 
                 # Parse the datetime
-                if res:
-                    return datetime.fromisoformat(str(res[0]))
+                if not res:
+                    return None
 
-                # Default to -5 minutes, if event not found
-                return compute_time(at=None, delta_by_minutes=-5)
+                return datetime.fromisoformat(str(res[0]))
 
         return get_row
 
     @staticmethod
     def insert_bulk(
-        data: List[WAF], table_name: str, max_retries: int = 3
+        data: List[WAF], zone_id: str, table_name: str, max_retries: int = 3
     ) -> Callable[[Any], Any]:
         """Inserts a chunk of records in bulk, into the specified table."""
 
@@ -186,7 +195,8 @@ class Database:
             """Returns a row tuple to be inserted into a table."""
 
             return (
-                data.rayName,
+                data.rayname,
+                zone_id,
                 data.datetime,
                 json.dumps(data.data),
             )
@@ -203,9 +213,9 @@ class Database:
             try:
                 # Insert JSON data into the table
                 insert_query = f"""
-                INSERT INTO {table_name} (rayName, datetime, data)
-                VALUES (%s, %s, %s)
-                ON CONFLICT (rayName) DO NOTHING
+                INSERT INTO {table_name} (rayname, zone_id, datetime, data)
+                VALUES (%s, %s, %s, %s)
+                ON CONFLICT (zone_id, rayname, datetime) DO NOTHING
                 ;
                 """
 

@@ -2,26 +2,25 @@
 # yaml-language-server: $schema=https://taskfile.dev/schema.json
 version: "3"
 
-silent: true
+silent: false
 
 tasks:
   venv:
     cmds:
       - echo "source venv/bin/activate"
 
-  clean-venv:
-    cmds:
-      - echo "Deleting virtualenv..." >&2
-      - scripts/delete-venv.bash
-
   clean:
-    deps: [clean-venv]
     cmds:
       - echo Cleaning up builds and caches... >&2
       - rm -rf {out,dist,build,.mypy_cache,.ruff_cache}
       - find . -type d -path ./venv -prune -o -name ".pytest_cache" -exec rm -rf {} \;
       - find . -type d -path ./venv -prune -o -name "__pycache__" -exec rm -rf {} \;
       - find . -type d -path ./venv -prune -o -name "*.egg-info" -exec rm -rf {} \;
+
+  clean-venv:
+    cmds:
+      - echo "Deleting virtualenv..." >&2
+      - scripts/delete-venv.bash
 
   create-venv:
     cmds:
@@ -40,6 +39,7 @@ tasks:
     cmds:
       - echo "Setting up repo for local development..." >&2
       - pre-commit install --install-hooks
+      - pre-commit install --hook-type pre-push
       - touch .env
 
   lint:

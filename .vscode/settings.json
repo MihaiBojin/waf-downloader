@@ -16,4 +16,8 @@
   "python.terminal.activateEnvInCurrentTerminal": true,
   "python.envFile": "${workspaceFolder}/.env",
   "terminal.integrated.defaultProfile.linux": "zsh",
+  "[yaml]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": false,
+  },
 }
