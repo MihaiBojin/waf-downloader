@@ -40,6 +40,7 @@ tasks:
     cmds:
       - echo "Setting up repo for local development..." >&2
       - pre-commit install --install-hooks
+      - pre-commit install --hook-type pre-push
       - touch .env
 
   lint:
