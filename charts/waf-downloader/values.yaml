@@ -1,5 +1,6 @@
 cloudflare:
   # Defines the Cloudflare zone ID
+  # Multiple values can be passed via a comma-separated string, e.g., "zone1,zone2,etc."
   zoneId: ""
   # Defines the Cloudflare API token
   apiToken: ""

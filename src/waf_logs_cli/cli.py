@@ -29,7 +29,8 @@ def main() -> None:
         type=str,
         required=True,
         nargs="+",
-        help="One or more Cloudflare zone_ids for which to download the logs",
+        help="One or more Cloudflare zone_ids for which to download the logs.\n"
+        + "Alternatively, all IDs can be passed via a comma-separated string, e.g., --zone_id='zone1,zone2,etc.'",
     )
     parser.add_argument(
         "--start_time",
@@ -72,7 +73,11 @@ def main() -> None:
     )
 
     args = parser.parse_args()
-    zones: List[str] = args.zone_id
+
+    # Split any comma-separated values and flatten the list
+    zones: List[str] = [
+        z.strip() for zone in args.zone_id for z in zone.split(",") if z.strip()
+    ]
 
     # Determine the earliest time to download logs for
     start_time = args.start_time
