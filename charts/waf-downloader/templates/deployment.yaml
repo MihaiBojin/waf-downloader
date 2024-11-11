@@ -53,6 +53,7 @@ spec:
 
           args:
           - --zone_id=$(CLOUDFLARE_ZONE_IDS)
+          - --chunk_size=$(CHUNK_SIZE)
           - --follow
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           resources:
