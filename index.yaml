@@ -5,6 +5,32 @@ entries:
       category: Application
       licenses: Apache-2.0
     apiVersion: v2
+    appVersion: 0.2.3
+    created: "2024-11-11T13:27:05.34314025Z"
+    description: A Helm chart for the Cloudflare Web Application Firewall log downloader
+    digest: 414786faf6e11c4637e6020bfc0053949cf8001046ad32793c9c3693b673d46b
+    home: https://MihaiBojin.github.io/waf-downloader/
+    icon: data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIGlkPSJJY29ucyIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgdmlld0JveD0iLTMuMiAtMy4yIDM4LjQwIDM4LjQwIiB4bWw6c3BhY2U9InByZXNlcnZlIiB3aWR0aD0iMjU2cHgiIGhlaWdodD0iMjU2cHgiIGZpbGw9IiMwMDAwMDAiIHN0cm9rZT0iIzAwMDAwMCIgdHJhbnNmb3JtPSJyb3RhdGUoMCltYXRyaXgoMSwgMCwgMCwgMSwgMCwgMCkiPjxnIGlkPSJTVkdSZXBvX2JnQ2FycmllciIgc3Ryb2tlLXdpZHRoPSIwIj48cmVjdCB4PSItMy4yIiB5PSItMy4yIiB3aWR0aD0iMzguNDAiIGhlaWdodD0iMzguNDAiIHJ4PSIxOS4yIiBmaWxsPSIjZmZkNjQ4IiBzdHJva2V3aWR0aD0iMCI+PC9yZWN0PjwvZz48ZyBpZD0iU1ZHUmVwb190cmFjZXJDYXJyaWVyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjwvZz48ZyBpZD0iU1ZHUmVwb19pY29uQ2FycmllciI+IDxzdHlsZSB0eXBlPSJ0ZXh0L2NzcyI+IC5zdDB7ZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoxLjUwNDtzdHJva2UtbGluZWNhcDpyb3VuZDtzdHJva2UtbGluZWpvaW46cm91bmQ7c3Ryb2tlLW1pdGVybGltaXQ6MTA7fSAuc3Qxe2ZpbGw6bm9uZTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6MS41MDQ7c3Ryb2tlLWxpbmVqb2luOnJvdW5kO3N0cm9rZS1taXRlcmxpbWl0OjEwO30gPC9zdHlsZT4gPHBhdGggY2xhc3M9InN0MCIgZD0iTTI2LjUsM2MwLjIsMCwwLjMsMCwwLjUsMGMyLjYsMC4zLDMuOSwzLjQsMi40LDUuNkwyNC41LDE2Ij48L3BhdGg+IDxsaW5lIGNsYXNzPSJzdDAiIHgxPSIyNiIgeTE9IjMiIHgyPSI5LjUiIHkyPSIzIj48L2xpbmU+IDxwYXRoIGNsYXNzPSJzdDAiIGQ9Ik0xMS4zLDEwLjNsLTguNywxM0MxLjIsMjUuNSwyLjQsMjguNyw1LDI5YzAuMiwwLDAuMywwLDAuNSwwaDE0LjkiPjwvcGF0aD4gPHBhdGggY2xhc3M9InN0MCIgZD0iTTksM0M2LjgsMyw1LDQuOCw1LDdjMCwwLjUsMC4yLDEsMC40LDEuNGMwLjYsMSwxLjgsMS42LDMsMS42SDI0Yy0xLDAtMy4xLTIuOC0wLjktNS41QzIzLjgsMy42LDI0LjksMywyNiwzIGMyLjIsMCw0LDEuOCw0LDQiPjwvcGF0aD4gPGxpbmUgY2xhc3M9InN0MCIgeDE9IjEzIiB5MT0iMTUiIHgyPSIxOCIgeTI9IjE1Ij48L2xpbmU+IDxsaW5lIGNsYXNzPSJzdDAiIHgxPSIxMSIgeTE9IjE4IiB4Mj0iMTQiIHkyPSIxOCI+PC9saW5lPiA8Y2lyY2xlIGNsYXNzPSJzdDAiIGN4PSIyNCIgY3k9IjIzIiByPSI3Ij48L2NpcmNsZT4gPGxpbmUgY2xhc3M9InN0MCIgeDE9IjI0IiB5MT0iMTYiIHgyPSIyNCIgeTI9IjI2Ij48L2xpbmU+IDxwb2x5bGluZSBjbGFzcz0ic3QwIiBwb2ludHM9IjIxLDIzIDI0LDI2IDI3LDIzICI+PC9wb2x5bGluZT4gPC9nPjwvc3ZnPg==
+    keywords:
+    - waf
+    - cloudflare
+    - logs
+    - downloader
+    - firewall
+    maintainers:
+    - email: mihai.bojin@gmail.com
+      name: Mihai Bojin
+    name: waf-downloader
+    sources:
+    - https://github.com/MihaiBojin/waf-downloader
+    type: application
+    urls:
+    - https://github.com/MihaiBojin/waf-downloader/releases/download/waf-downloader-0.2.3/waf-downloader-0.2.3.tgz
+    version: 0.2.3
+  - annotations:
+      category: Application
+      licenses: Apache-2.0
+    apiVersion: v2
     appVersion: 0.2.2
     created: "2024-11-11T12:32:19.795261269Z"
     description: A Helm chart for the Cloudflare Web Application Firewall log downloader
@@ -131,4 +157,4 @@ entries:
     urls:
     - https://github.com/MihaiBojin/waf-downloader/releases/download/waf-downloader-0.1.21/waf-downloader-0.1.21.tgz
     version: 0.1.21
-generated: "2024-11-11T12:32:19.795284832Z"
+generated: "2024-11-11T13:27:05.34316735Z"
