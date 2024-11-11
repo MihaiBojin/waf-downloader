@@ -39,11 +39,6 @@ repos:
 
   - repo: local
     hooks:
-      - id: pre-push-hook
-        name: Pre-push hook
-        entry: scripts/pre-push.bash
-        language: script
-        stages: [pre-push]
       - id: helm-lint
         name: Helm lint
         entry: task helm-lint
