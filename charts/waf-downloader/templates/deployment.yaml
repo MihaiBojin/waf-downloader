@@ -40,11 +40,11 @@ spec:
               secretKeyRef:
                 key: DB_CONN_STR
                 name: {{ include "waf-downloader.name" . }}
-          - name: CLOUDFLARE_ZONE_ID
+          - name: CLOUDFLARE_ZONE_IDS
             valueFrom:
               configMapKeyRef:
                 name: {{ include "waf-downloader.name" . }}
-                key: CLOUDFLARE_ZONE_ID
+                key: CLOUDFLARE_ZONE_IDS
           - name: CHUNK_SIZE
             valueFrom:
               configMapKeyRef:
@@ -52,8 +52,7 @@ spec:
                 key: CHUNK_SIZE
 
           args:
-          - --zone_id=$(CLOUDFLARE_ZONE_ID)
-          - --sleep_interval_minutes=10
+          - --zone_id=$(CLOUDFLARE_ZONE_IDS)
           - --follow
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           resources:

@@ -112,7 +112,7 @@ tasks:
     desc: Lint the Helm chart
     deps: [set-chart-version]
     cmds:
-      - helm lint charts/waf-downloader --set cloudflare.apiToken="REQUIRED" --set cloudflare.zoneId="REQUIRED"
+      - helm lint charts/waf-downloader --set cloudflare.apiToken="REQUIRED" --set cloudflare.zoneIds="REQUIRED"
 
   helm-template:
     desc: Template the Helm chart
