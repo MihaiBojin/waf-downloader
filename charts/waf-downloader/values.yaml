@@ -5,8 +5,8 @@ cloudflare:
   # Defines the Cloudflare API token
   apiToken: ""
 
-# Defines how many lines to bulk insert into the database
-chunkSize: "1000"  # Default to 1000
+# Defines how many lines to bulk insert into the database per transaction
+chunkSize: "10000"  # Default to 10000
 
 outputs:
   # Defines where to store the downloaded logs
