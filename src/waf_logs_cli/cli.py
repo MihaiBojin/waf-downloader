@@ -132,15 +132,17 @@ def main() -> None:
 
         # If the end time is close to the current time, sleep for a minute to avoid
         # downloading the same logs repeatedly
+        # Since the downloader always downloads up a minute ago (rounded up to :00 seconds),
+        # If the last observed time is less than 2 minutes ago, sleep until the next minute
         if can_run and (
             last_time is None
             or datetime.now(tz=timezone.utc) - last_time < timedelta(minutes=2)
         ):
-            # Determine the minimum sleep time until the next MM:01
             sleep_time = 60
             if last_time is not None:
+                # Determine the minimum sleep time until the next minute mark
                 sleep_time = (
-                    61
+                    60
                     - int((datetime.now(tz=timezone.utc) - last_time).total_seconds())
                     % 60
                 )
