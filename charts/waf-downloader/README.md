@@ -12,10 +12,10 @@ helm repo update
 ## Install the Helm chart in your cluster
 
 ```shell
-helm install -f config.yaml waf-downloader waf/waf-downloader
+helm install -n default -f config.yaml waf-downloader waf/waf-downloader
 
 # or upgrade
-helm upgrade waf-downloader waf/waf-downloader
+helm upgrade -n default waf-downloader waf/waf-downloader
 ```
 
 You must also provide a few configuration values, e.g.:
