@@ -8,11 +8,12 @@ import argparse
 from datetime import datetime, timedelta, timezone
 import multiprocessing
 import os
+import sys
 import time
 from typing import List, Optional
 from dotenv import load_dotenv
 
-from waf_logs.downloader import download_loop
+from waf_logs.downloader import download_loop, initialize
 from waf_logs.helpers import compute_time
 
 
@@ -104,6 +105,12 @@ def main() -> None:
 
     # Initialize the sink
     connection_string: Optional[str] = os.getenv("DB_CONN_STR")
+    sink, db = initialize(
+        connection_string=connection_string,
+        concurrency=concurrency,
+        chunk_size=chunk_size,
+        ensure_schema=ensure_schema,
+    )
 
     can_run = True
     while can_run:
@@ -113,11 +120,9 @@ def main() -> None:
         last_time: Optional[datetime] = None
         for zone_id in zones:
             et = download_loop(
+                sink=sink,
+                db=db,
                 zone_id=zone_id,
-                connection_string=connection_string,
-                concurrency=concurrency,
-                chunk_size=chunk_size,
-                ensure_schema=ensure_schema,
                 cloudflare_token=token,
                 cloudflare_queries=["get_firewall_events", "get_firewall_events_ext"],
                 start_time=start_time,
@@ -127,11 +132,25 @@ def main() -> None:
 
         # If the end time is close to the current time, sleep for a minute to avoid
         # downloading the same logs repeatedly
+        # Since the downloader always downloads up a minute ago (rounded up to :00 seconds),
+        # If the last observed time is less than 2 minutes ago, sleep until the next minute
         if can_run and (
             last_time is None
-            or datetime.now(tz=timezone.utc) - last_time < timedelta(minutes=1)
+            or datetime.now(tz=timezone.utc) - last_time < timedelta(minutes=2)
         ):
-            time.sleep(60)
+            sleep_time = 60
+            if last_time is not None:
+                # Determine the minimum sleep time until the next minute mark
+                sleep_time = (
+                    60
+                    - int((datetime.now(tz=timezone.utc) - last_time).total_seconds())
+                    % 60
+                )
+
+            print(
+                f"Sleeping for {sleep_time} seconds before continuing", file=sys.stderr
+            )
+            time.sleep(sleep_time)
 
 
 if __name__ == "__main__":
