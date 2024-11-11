@@ -5,4 +5,4 @@ metadata:
   namespace: {{ include "waf-downloader.name" . }}
 data:
   CHUNK_SIZE: {{ .Values.chunkSize | quote }}
-  CLOUDFLARE_ZONE_ID: {{ .Values.cloudflare.zoneId | quote }}
+  CLOUDFLARE_ZONE_IDS: {{ .Values.cloudflare.zoneIds | quote }}

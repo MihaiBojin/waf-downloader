@@ -24,7 +24,7 @@ You must also provide a few configuration values, e.g.:
 # config.yaml
 cloudflare:
   apiToken: <CLOUDFLARE_API_TOKEN> # Specifies the Cloudflare API token
-  zoneId: <CLOUDFLARE_ZONE_ID> # Specifies the zone to download logs from
+  zoneIds: <CLOUDFLARE_ZONE_IDS> # Specifies the zone (or comma-separated list of zones) to download logs from
 outputs:
   dbConnStr: <POSTGRES_CONNECTION_STRING> # Specifies a Postgres endpoint to send the logs to
 ```
