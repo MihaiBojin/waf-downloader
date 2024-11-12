@@ -97,7 +97,11 @@ def get_waf_logs(
     return LogResult(
         logs=result,
         overflown=len(result) == MAX_LOG_LIMIT,
-        last_event=iso_to_datetime(result[-1].datetime),
+        # Use the last event time if available, otherwise use the specified start time
+        # If no events are returned, it might be because there are none,
+        # or because there is a delay in the API returning results
+        # This behavior ensures that the downloader will not 'lose' events due to a delay in the downstream API.
+        last_event=iso_to_datetime(result[-1].datetime) if result else start_time,
         intended_end_time=end_time,
     )
 
