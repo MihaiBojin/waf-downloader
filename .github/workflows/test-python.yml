@@ -33,7 +33,7 @@ jobs:
       - id: releasetools
         uses: releasetools/bash@v0
         with:
-          version: "v0.0.5"
+          version: "v0.0.6"
 
       - name: Install Task
         uses: arduino/setup-task@v2
