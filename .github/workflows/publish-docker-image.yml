@@ -65,8 +65,10 @@ jobs:
           REPO_NAME=$(echo "${{ github.repository }}" | cut -d '/' -f 2)
           echo "REPO_NAME=$REPO_NAME" >> "$GITHUB_ENV"
 
-          scripts/detect-and-set-tag-version.bash
-          echo "VERSION=$(cat ${{ github.workspace }}/VERSION)" >> "$GITHUB_ENV"
+          VERSION="$(rt git::version_or_sha)"
+          echo "Updating version in '$VERSION_FILE' to: $VERSION" >&2
+          echo "$VERSION" > ./VERSION
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 
       - name: Release
         uses: softprops/action-gh-release@v2
