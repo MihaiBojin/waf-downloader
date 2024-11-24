@@ -22,6 +22,12 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - run: pip install toml
+      - id: releasetools
+        uses: releasetools/bash@v0
+        with:
+          version: "v0.0.5"
+
       - name: Install Task
         uses: arduino/setup-task@v2
         with:

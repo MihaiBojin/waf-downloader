@@ -33,6 +33,11 @@ jobs:
         with:
           version: 3.39.2
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - run: pip install toml
+      - id: releasetools
+        uses: releasetools/bash@v0
+        with:
+          version: "v0.0.5"
 
       - name: Configuring developer tools
         run: |

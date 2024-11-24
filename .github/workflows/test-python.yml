@@ -5,10 +5,13 @@ on:
   pull_request:
     branches:
       - main
-  # And on pushes to main
   push:
+    # On main
     branches:
       - main
+    # And on tag pushes
+    tags:
+      - "v0.*"
 
 jobs:
   lint-test:
@@ -25,6 +28,12 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+
+      - run: pip install toml
+      - id: releasetools
+        uses: releasetools/bash@v0
+        with:
+          version: "v0.0.5"
 
       - name: Install Task
         uses: arduino/setup-task@v2
@@ -50,3 +59,47 @@ jobs:
         run: |
           eval "$(task venv)"
           pytest tests
+
+      - name: Set the correct (tag) version
+        if: matrix.python-version == '3.13' && github.event_name == 'push' && github.ref_name == 'main'
+        working-directory: .
+        run: |
+          VERSION="$(rt git::version_or_sha)"
+          echo "Updating version in '$VERSION_FILE' to: $VERSION" >&2
+          echo "$VERSION" > ./VERSION
+
+      - name: Build
+        if: matrix.python-version == '3.13' && github.event_name == 'push' && github.ref_name == 'main'
+        working-directory: .
+        run: |
+          eval "$(task venv)"
+          task build
+
+      - name: Publish package to test repository
+        if: matrix.python-version == '3.13' && github.event_name == 'push' && github.ref_name == 'main'
+        env:
+          TESTPYPI_PASSWORD: ${{ secrets.TESTPYPI_PASSWORD }}
+        working-directory: .
+        run: |
+          eval "$(task venv)"
+          task publish-test
+
+      - name: Publish package
+        if: matrix.python-version == '3.13' && github.event_name == 'push' && github.ref_name == 'main'
+        env:
+          PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+        working-directory: .
+        run: |
+          eval "$(task venv)"
+          task publish
+
+      - name: Waiting 30 seconds for the PyPI indexes to be updated
+        if: matrix.python-version == '3.13' && github.event_name == 'push' && github.ref_name == 'main'
+        run: sleep 30
+
+      - name: Verify package install from PyPI
+        if: matrix.python-version == '3.13' && github.event_name == 'push' && github.ref_name == 'main'
+        working-directory: .
+        run: |
+          eval "$(task venv)"
+          task publish-verify
