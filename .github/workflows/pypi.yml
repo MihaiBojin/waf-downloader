@@ -1,4 +1,4 @@
-name: Run Python Linters and Tests
+name: Test and Publish to PyPI
 
 on:
   # Trigger on PRs
