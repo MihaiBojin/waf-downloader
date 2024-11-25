@@ -81,7 +81,10 @@ jobs:
       - name: Set the correct (tag) version
         working-directory: .
         run: |
-          scripts/detect-and-set-tag-version.bash
+          VERSION="$(rt git::version_or_sha)"
+          echo "Updating version in '$VERSION_FILE' to: $VERSION" >&2
+          echo "$VERSION" > ./VERSION
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 
       - name: Build
         working-directory: .
