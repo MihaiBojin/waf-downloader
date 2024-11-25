@@ -14,7 +14,7 @@ on:
       - "v0.*"
 
 jobs:
-  lint-test:
+  upload:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -61,7 +61,7 @@ jobs:
           pytest tests
 
       - name: Set the correct (tag) version
-        if: matrix.python-version == '3.13' && github.event_name == 'push' && github.ref_name == 'main'
+        if: matrix.python-version == '3.13' && github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v0.')
         working-directory: .
         run: |
           VERSION="$(rt git::version_or_sha)"
@@ -69,14 +69,14 @@ jobs:
           echo "$VERSION" > ./VERSION
 
       - name: Build
-        if: matrix.python-version == '3.13' && github.event_name == 'push' && github.ref_name == 'main'
+        if: matrix.python-version == '3.13' && github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v0.')
         working-directory: .
         run: |
           eval "$(task venv)"
           task build
 
       - name: Publish package to test repository
-        if: matrix.python-version == '3.13' && github.event_name == 'push' && github.ref_name == 'main'
+        if: matrix.python-version == '3.13' && github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v0.')
         env:
           TESTPYPI_PASSWORD: ${{ secrets.TESTPYPI_PASSWORD }}
         working-directory: .
@@ -85,7 +85,7 @@ jobs:
           task publish-test
 
       - name: Publish package
-        if: matrix.python-version == '3.13' && github.event_name == 'push' && github.ref_name == 'main'
+        if: matrix.python-version == '3.13' && github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v0.')
         env:
           PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
         working-directory: .
@@ -94,11 +94,11 @@ jobs:
           task publish
 
       - name: Waiting 30 seconds for the PyPI indexes to be updated
-        if: matrix.python-version == '3.13' && github.event_name == 'push' && github.ref_name == 'main'
+        if: matrix.python-version == '3.13' && github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v0.')
         run: sleep 30
 
       - name: Verify package install from PyPI
-        if: matrix.python-version == '3.13' && github.event_name == 'push' && github.ref_name == 'main'
+        if: matrix.python-version == '3.13' && github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v0.')
         working-directory: .
         run: |
           eval "$(task venv)"

@@ -1,24 +1,13 @@
 name: Push OCI image
 
 on:
-  # # Trigger on PRs
-  # pull_request:
-  #   branches:
-  #     - main
-  # push:
-  #   # On main
-  #   branches:
-  #     - main
-  #   # And on tag pushes
-  #   tags:
-  #     - "v0.*"
   workflow_run:
     workflows: [Upload to PyPI]
     types:
       - completed
 
 jobs:
-  build-and-push:
+  push:
     runs-on: ubuntu-latest
 
     permissions:
@@ -78,7 +67,7 @@ jobs:
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 
       - name: Login to GitHub Container Registry
-        if: github.event_name == 'push' && github.ref_name == 'main'
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v0.')
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -87,7 +76,7 @@ jobs:
           logout: true
 
       - name: Log in to Docker Hub
-        if: github.event_name == 'push' && github.ref_name == 'main'
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v0.')
         uses: docker/login-action@v3
         with:
           registry: docker.io
@@ -99,7 +88,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           platforms: linux/amd64,linux/arm64
-          push: github.event_name == 'push' && github.ref_name == 'main'
+          push: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v0.')
           labels: |
             org.opencontainers.image.title=Cloudflare Web Application Firewall log downloader
             org.opencontainers.image.description="Cloudflare Web Application Firewall log downloader for a specified zone and time range"
@@ -117,21 +106,22 @@ jobs:
             docker.io/${{ vars.DOCKERHUB_USERNAME }}/${{ env.REPO_NAME }}:${{ env.VERSION }}
             docker.io/${{ vars.DOCKERHUB_USERNAME }}/${{ env.REPO_NAME }}:latest
 
-            - name: Generate SBOM (GHCR)
-            uses: anchore/sbom-action@v0
-            with:
-              image: ghcr.io/${{ env.OWNER_REPO }}:${{ env.VERSION }}
-              artifact-name: sbom_ghcr_${{ env.REPO_NAME }}_${{ env.VERSION }}.spdx.json
+      - name: Generate SBOM (GHCR)
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v0.')
+        uses: anchore/sbom-action@v0
+        with:
+          image: ghcr.io/${{ env.OWNER_REPO }}:${{ env.VERSION }}
+          artifact-name: sbom_ghcr_${{ env.REPO_NAME }}_${{ env.VERSION }}.spdx.json
 
       - name: Generate SBOM (Docker Hub)
-        if: github.event_name == 'push' && github.ref_name == 'main'
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v0.')
         uses: anchore/sbom-action@v0
         with:
           image: docker.io/${{ vars.DOCKERHUB_USERNAME }}/${{ env.REPO_NAME }}:${{ env.VERSION }}
           artifact-name: sbom_docker_${{ env.REPO_NAME }}_${{ env.VERSION }}.spdx.json
 
       - name: Generate artifact attestation for GitHub Container Registry
-        if: github.event_name == 'push' && github.ref_name == 'main'
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v0.')
         uses: actions/attest-build-provenance@v1
         with:
           subject-name: ghcr.io/${{ env.OWNER_REPO }}
@@ -139,7 +129,7 @@ jobs:
           push-to-registry: true
 
       - name: Generate artifact attestation for Docker Hub
-        if: github.event_name == 'push' && github.ref_name == 'main'
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v0.')
         uses: actions/attest-build-provenance@v1
         with:
           subject-name: docker.io/${{ vars.DOCKERHUB_USERNAME }}/${{ env.REPO_NAME }}
@@ -147,7 +137,7 @@ jobs:
           push-to-registry: true
 
       - name: Release
-        if: github.event_name == 'push' && github.ref_name == 'main'
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v0.')
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
