@@ -1,4 +1,4 @@
-name: Build OCI image and push to registries
+name: Push OCI image
 
 on:
   # # Trigger on PRs
@@ -13,7 +13,7 @@ on:
   #   tags:
   #     - "v0.*"
   workflow_run:
-    workflows: ["Test and Publish to PyPI"]
+    workflows: [Upload to PyPI]
     types:
       - completed
 

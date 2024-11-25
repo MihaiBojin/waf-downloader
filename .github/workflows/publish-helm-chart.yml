@@ -1,13 +1,18 @@
-name: Publish Helm Chart to GitHub Pages
+name: Publish Helm Chart
 
 on:
   # Trigger only on v0.* tag pushes
-  push:
-    tags:
-      - "v0.*"
+  # push:
+  #   tags:
+  #     - "v0.*"
+  workflow_run:
+    workflows: [Push OCI image]
+    types:
+      - completed
 
 jobs:
   release-helm-chart:
+    if: github.event_name == 'push' && github.ref_name == 'main'
     runs-on: ubuntu-latest
 
     # see: https://docs.github.com/en/actions/security-guides/automatic-token-authentication#modifying-the-permissions-for-the-github_token
