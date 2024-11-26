@@ -89,7 +89,7 @@ jobs:
         with:
           platforms: linux/amd64,linux/arm64
           # Only push image to registries on tag pushes
-          push: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v0.')
+          push: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v0.') }}
           labels: |
             org.opencontainers.image.title=Cloudflare Web Application Firewall log downloader
             org.opencontainers.image.description="Cloudflare Web Application Firewall log downloader for a specified zone and time range"
