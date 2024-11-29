@@ -254,13 +254,6 @@ jobs:
           image: docker.io/${{ vars.DOCKERHUB_USERNAME }}/${{ env.REPO_NAME }}:${{ env.VERSION }}
           artifact-name: sbom_docker_${{ env.REPO_NAME }}_${{ env.VERSION }}.spdx.json
 
-      - name: Upload SBOM
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v0.')
-        uses: actions/upload-artifact@v4
-        with:
-          name: sbom-docker
-          path: sbom_docker_${{ env.REPO_NAME }}_${{ env.VERSION }}.spdx.json
-
   push-ghcr:
     name: Build and/or push to GitHub Container Registry
     runs-on: ubuntu-latest
@@ -366,13 +359,6 @@ jobs:
           image: ghcr.io/${{ env.OWNER_REPO }}:${{ env.VERSION }}
           artifact-name: sbom_ghcr_${{ env.REPO_NAME }}_${{ env.VERSION }}.spdx.json
 
-      - name: Upload SBOM
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v0.')
-        uses: actions/upload-artifact@v4
-        with:
-          name: sbom-ghcr
-          path: sbom_ghcr_${{ env.REPO_NAME }}_${{ env.VERSION }}.spdx.json
-
   release:
     name: Release
     runs-on: ubuntu-latest
@@ -381,29 +367,16 @@ jobs:
       - push-ghcr
 
     steps:
-      - name: Download SBOM for GHCR
-        id: download-sbom-ghcr
-        uses: actions/download-artifact@v4
-        with:
-          name: sbom-ghcr
-          path: .
-
-      - name: Download SBOM for Docker Hub
-        id: download-sbom-docker
-        uses: actions/download-artifact@v4
-        with:
-          name: sbom-ghcr
-          path: .
-
       - name: Release
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v0.')
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
           make_latest: true
-          files: |
-            sbom_ghcr_${{ env.REPO_NAME }}_${{ env.VERSION }}.spdx.json
-            sbom_docker_${{ env.REPO_NAME }}_${{ env.VERSION }}.spdx.json
+
+      - uses: anchore/sbom-action/publish-sbom@v0
+        with:
+          sbom-artifact-match: ".*\\.spdx\\.json$"
 
   helm:
     name: Publish Helm Chart
