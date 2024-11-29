@@ -82,6 +82,12 @@ jobs:
           version: 3.39.2
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Install dependencies
+        run: |
+          task create-venv
+          eval "$(task venv)"
+          task install
+
       - name: Set the correct (tag) version
         run: |
           VERSION="$(rt git::version_or_sha)"
