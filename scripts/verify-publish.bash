@@ -29,7 +29,7 @@ retry() {
         fi
 
         echo
-        echo "Retring ($count/$((MAX_ATTEMPTS - 1)))..."
+        echo "Retrying ($count/$((MAX_ATTEMPTS - 1)))..."
         delay=$((base * count))
         echo "Sleeping for $delay seconds before retrying..."
         sleep "$delay"
