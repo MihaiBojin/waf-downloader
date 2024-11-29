@@ -381,9 +381,18 @@ jobs:
       - push-ghcr
 
     steps:
-      - name: Download SBOMs
+      - name: Download SBOM for GHCR
+        id: download-sbom-ghcr
         uses: actions/download-artifact@v4
         with:
+          name: sbom-ghcr
+          path: .
+
+      - name: Download SBOM for Docker Hub
+        id: download-sbom-docker
+        uses: actions/download-artifact@v4
+        with:
+          name: sbom-ghcr
           path: .
 
       - name: Release
