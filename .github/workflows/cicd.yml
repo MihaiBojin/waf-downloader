@@ -26,11 +26,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - run: pip install toml
-      - id: releasetools
-        uses: releasetools/bash@v0
-        with:
-          version: "v0.0.6"
+      - uses: releasetools/bash@v0
 
       - name: Install Task
         uses: arduino/setup-task@v2
@@ -68,13 +64,7 @@ jobs:
         with:
           python-version: 3.13
 
-      - id: releasetools
-        uses: releasetools/bash@v0
-        with:
-          version: "v0.0.6"
-
-      - name: Install release tools dependencies
-        run: pip install toml
+      - uses: releasetools/bash@v0
 
       - name: Install Task
         uses: arduino/setup-task@v2
@@ -171,13 +161,7 @@ jobs:
         with:
           python-version: 3.13
 
-      - id: releasetools
-        uses: releasetools/bash@v0
-        with:
-          version: "v0.0.6"
-
-      - name: Install release tools dependencies
-        run: pip install toml
+      - uses: releasetools/bash@v0
 
       - name: Install Task
         uses: arduino/setup-task@v2
@@ -293,13 +277,7 @@ jobs:
           version: 3.39.2
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install Release Tools
-        uses: releasetools/bash@v0
-        with:
-          version: "v0.0.6"
-
-      - name: Install release tools dependencies
-        run: pip install toml
+      - uses: releasetools/bash@v0
 
       - name: Generate build tags
         run: |
@@ -399,10 +377,7 @@ jobs:
         with:
           python-version: 3.13
 
-      - id: releasetools
-        uses: releasetools/bash@v0
-        with:
-          version: "v0.0.6"
+      - uses: releasetools/bash@v0
 
       - name: Install Task
         uses: arduino/setup-task@v2
