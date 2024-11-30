@@ -394,6 +394,16 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.13
+
+      - id: releasetools
+        uses: releasetools/bash@v0
+        with:
+          version: "v0.0.6"
+
       - name: Install Task
         uses: arduino/setup-task@v2
         with:
