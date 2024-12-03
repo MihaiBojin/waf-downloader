@@ -26,7 +26,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - uses: releasetools/bash@v0
+      - uses: releasetools/cli@v0
 
       - name: Install Task
         uses: arduino/setup-task@v2
@@ -64,7 +64,7 @@ jobs:
         with:
           python-version: 3.13
 
-      - uses: releasetools/bash@v0
+      - uses: releasetools/cli@v0
 
       - name: Install Task
         uses: arduino/setup-task@v2
@@ -161,7 +161,7 @@ jobs:
         with:
           python-version: 3.13
 
-      - uses: releasetools/bash@v0
+      - uses: releasetools/cli@v0
 
       - name: Install Task
         uses: arduino/setup-task@v2
@@ -277,7 +277,7 @@ jobs:
           version: 3.39.2
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: releasetools/bash@v0
+      - uses: releasetools/cli@v0
 
       - name: Generate build tags
         run: |
@@ -377,7 +377,7 @@ jobs:
         with:
           python-version: 3.13
 
-      - uses: releasetools/bash@v0
+      - uses: releasetools/cli@v0
 
       - name: Install Task
         uses: arduino/setup-task@v2
