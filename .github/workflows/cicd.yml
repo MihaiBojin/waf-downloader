@@ -225,7 +225,7 @@ jobs:
 
       - name: Generate artifact attestation
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v0.')
-        uses: actions/attest-build-provenance@v1
+        uses: actions/attest-build-provenance@v2
         with:
           subject-name: docker.io/${{ vars.DOCKERHUB_USERNAME }}/${{ env.REPO_NAME }}
           subject-digest: ${{ steps.build.outputs.digest }}
@@ -324,7 +324,7 @@ jobs:
 
       - name: Generate artifact attestation
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v0.')
-        uses: actions/attest-build-provenance@v1
+        uses: actions/attest-build-provenance@v2
         with:
           subject-name: ghcr.io/${{ env.OWNER_REPO }}
           subject-digest: ${{ steps.build.outputs.digest }}
