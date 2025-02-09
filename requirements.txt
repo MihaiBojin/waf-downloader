@@ -1,6 +1,6 @@
 # Global requirements
 # keep-sorted start
-more_itertools==10.5.0
+more_itertools==10.6.0
 psycopg-binary==3.2.3
 psycopg==3.2.4
 psycopg_pool==3.2.4
