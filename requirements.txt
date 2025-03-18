@@ -2,7 +2,7 @@
 # keep-sorted start
 more_itertools==10.6.0
 psycopg-binary==3.2.4
-psycopg==3.2.4
+psycopg==3.2.6
 psycopg_pool==3.2.6
 requests==2.32.3
 # keep-sorted end
