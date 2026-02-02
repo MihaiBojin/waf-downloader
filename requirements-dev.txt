@@ -2,7 +2,7 @@
 # keep-sorted start
 build ==1.2.2.post1
 pip ==25.0.1
-pre-commit ==4.2.0
+pre-commit ==4.5.1
 pytest ==8.4.2
 toml == 0.10.2
 twine ==6.1.0
