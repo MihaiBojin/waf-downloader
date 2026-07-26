@@ -56,7 +56,7 @@ build:
 	@python -m build
 
 .PHONY: build-inspect
-build-inspect: PROJECT_NAME = $(shell python -c "import toml; print(toml.load('pyproject.toml')['project']['name'])")
+build-inspect: PROJECT_NAME = $(shell python -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['name'])")
 build-inspect:
 	@echo
 	@echo "Inspecting wheel..."
