@@ -31,7 +31,7 @@
     "PATH": "${containerEnv:PATH}" // add more here
   },
   "features": {
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+    "ghcr.io/devcontainers/features/docker-in-docker:4": {}
   },
   "onCreateCommand": "bash .devcontainer/onCreateCommand.bash",
   "postStartCommand": "bash .devcontainer/postStartCommand.bash"
