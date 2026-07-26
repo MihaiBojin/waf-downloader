@@ -7,7 +7,7 @@ readonly DIR
 # shellcheck disable=SC1091
 source "$DIR/functions.bash"
 
-VERSION="$(rt git::latest_version)"
+VERSION="$(releasetools git::latest_version)"
 readonly VERSION
 
 cat "$DIR"/../charts/waf-downloader/Chart.yaml.tmpl >"$DIR"/../charts/waf-downloader/Chart.yaml
