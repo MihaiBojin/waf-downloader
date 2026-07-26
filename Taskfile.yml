@@ -63,7 +63,7 @@ tasks:
     deps: [build]
     vars:
       PROJECT_NAME:
-        sh: python -c "import toml; print(toml.load('pyproject.toml')['project']['name'])"
+        sh: python -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['name'])"
     cmds:
       - echo >&2
       - echo "Inspecting wheel..." >&2
