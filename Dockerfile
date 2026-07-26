@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM python:3.13-slim AS builder
+FROM --platform=$BUILDPLATFORM python:3.14-slim AS builder
 
 ENV PIP_DEFAULT_TIMEOUT=100 \
     # Allow statements and log messages to appear immediately
@@ -25,7 +25,7 @@ COPY . /app
 RUN /usr/local/bin/task install
 RUN /usr/local/bin/task build
 
-FROM --platform=$BUILDPLATFORM python:3.13-alpine
+FROM --platform=$BUILDPLATFORM python:3.14-alpine
 
 ENV PIP_DEFAULT_TIMEOUT=100 \
     # Allow statements and log messages to appear immediately
