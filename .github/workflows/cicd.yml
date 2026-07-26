@@ -204,7 +204,7 @@ jobs:
 
       - name: Build multiplatform image
         id: build
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           platforms: linux/arm64,linux/amd64
           # Only push image to registries on tag pushes
@@ -303,7 +303,7 @@ jobs:
 
       - name: Build multiplatform image
         id: build
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           platforms: linux/arm64,linux/amd64
           # Only push image to registries on tag pushes
