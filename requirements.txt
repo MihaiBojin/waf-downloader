@@ -4,5 +4,5 @@ more_itertools==11.1.0
 psycopg-binary==3.3.4
 psycopg==3.3.4
 psycopg_pool==3.3.1
-requests==2.33.0
+requests==2.34.2
 # keep-sorted end
