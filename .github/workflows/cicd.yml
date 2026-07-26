@@ -90,7 +90,7 @@ jobs:
           task build
 
       - name: Cache build
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           path: .
           key: ${{ runner.os }}-build-${{ github.sha }}
@@ -116,7 +116,7 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Restore working directory
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: .
           key: ${{ runner.os }}-build-${{ github.sha }}
@@ -170,7 +170,7 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Restore working directory
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: .
           key: ${{ runner.os }}-build-${{ github.sha }}
@@ -260,7 +260,7 @@ jobs:
           python-version: 3.13
 
       - name: Restore working directory
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: .
           key: ${{ runner.os }}-build-${{ github.sha }}
