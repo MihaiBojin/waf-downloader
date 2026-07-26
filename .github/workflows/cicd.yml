@@ -62,7 +62,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v7
         with:
-          python-version: 3.13
+          python-version: 3.14
 
       - uses: releasetools/cli@v0
 
@@ -107,7 +107,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v7
         with:
-          python-version: 3.13
+          python-version: 3.14
 
       - name: Install Task
         uses: arduino/setup-task@v3.0.0
@@ -159,7 +159,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v7
         with:
-          python-version: 3.13
+          python-version: 3.14
 
       - uses: releasetools/cli@v0
 
@@ -257,7 +257,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v7
         with:
-          python-version: 3.13
+          python-version: 3.14
 
       - name: Restore working directory
         uses: actions/cache/restore@v6
@@ -375,7 +375,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v7
         with:
-          python-version: 3.13
+          python-version: 3.14
 
       - uses: releasetools/cli@v0
 
