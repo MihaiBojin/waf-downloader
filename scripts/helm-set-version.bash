@@ -7,7 +7,11 @@ readonly DIR
 # shellcheck disable=SC1091
 source "$DIR/functions.bash"
 
+# Helm chart versions are SemVer without a leading 'v'. The published chart
+# tags and index entries all use the bare form (waf-downloader-0.2.5), so strip
+# the prefix that git::latest_version returns.
 VERSION="$(releasetools git::latest_version)"
+VERSION="${VERSION#v}"
 readonly VERSION
 
 cat "$DIR"/../charts/waf-downloader/Chart.yaml.tmpl >"$DIR"/../charts/waf-downloader/Chart.yaml
