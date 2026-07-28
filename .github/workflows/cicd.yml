@@ -393,32 +393,57 @@ jobs:
           git config user.name "$GITHUB_ACTOR" # "github-actions[bot]"
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com" # "github-actions[bot]@users.noreply.github.com"
 
-      # Chart.yaml is generated from Chart.yaml.tmpl and gitignored, so the
-      # version bump is invisible to git. chart-releaser decides what to publish
-      # by diffing tracked files under charts/, and without this commit it sees
-      # no change and silently skips the release. The commit stays local.
-      - name: Commit the generated chart version
-        run: |
-          git add --force charts/waf-downloader/Chart.yaml
-          git commit -m "Set chart version for ${GITHUB_REF_NAME}"
-
       - name: Set up Helm
         uses: azure/setup-helm@v5.0.1
 
-      - name: Run chart-releaser
-        id: chart_releaser
+      # Install cr only. The action's own release step runs
+      # `cr upload -c "$(git rev-parse HEAD)"`, and its change detection diffs
+      # tracked files under charts/ against the tag being released -- which is
+      # the commit being built, so nothing ever looks changed. Driving cr
+      # directly sidesteps both: every release tag publishes its chart, targeted
+      # at a commit that exists on the remote.
+      - name: Install chart-releaser
         uses: helm/chart-releaser-action@v1.7.0
-        env:
-          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
         with:
-          skip_existing: true
+          install_only: true
 
-      # chart-releaser exits 0 when it finds nothing to do, so a no-op is
-      # indistinguishable from a success. On a tag build it must publish.
-      - name: Verify the chart was published
+      - name: Package and publish the chart
+        env:
+          CR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if [ -z "${{ steps.chart_releaser.outputs.changed_charts }}" ]; then
-            echo "ERROR: chart-releaser published nothing on a tag build" >&2
+          OWNER="${GITHUB_REPOSITORY%%/*}"
+          REPO="${GITHUB_REPOSITORY##*/}"
+
+          cr package charts/waf-downloader --package-path .cr-release-packages
+
+          # '-c "$GITHUB_SHA"' is the fix: on a tag build that is the tagged
+          # commit, which GitHub can resolve. The generated Chart.yaml is
+          # gitignored, so any commit made to make it visible to git would be
+          # local to the runner, and GitHub rejects a release whose
+          # target_commitish it has never seen (422, "not a valid tag").
+          cr upload \
+            --owner "$OWNER" \
+            --git-repo "$REPO" \
+            --commit "$GITHUB_SHA" \
+            --skip-existing \
+            --package-path .cr-release-packages
+
+          cr index \
+            --owner "$OWNER" \
+            --git-repo "$REPO" \
+            --push \
+            --package-path .cr-release-packages
+
+      # '--skip-existing' makes re-runs idempotent, which also means a chart
+      # that failed to publish exits 0. On a tag build it must be there.
+      - name: Verify the chart was published
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          CHART_VERSION="$(awk '/^version:/ {print $2; exit}' charts/waf-downloader/Chart.yaml)"
+          RELEASE="waf-downloader-${CHART_VERSION}"
+          if ! gh release view "$RELEASE" --json tagName >/dev/null 2>&1; then
+            echo "ERROR: chart release '$RELEASE' was not published" >&2
             exit 1
           fi
-          echo "Published ${{ steps.chart_releaser.outputs.changed_charts }} version ${{ steps.chart_releaser.outputs.chart_version }}" >&2
+          echo "Published chart release '$RELEASE'" >&2
