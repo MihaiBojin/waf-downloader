@@ -45,6 +45,32 @@ See [charts/waf-downloader/README.md](./charts/waf-downloader/README.md) for mor
 
 ## Development
 
+This project uses [uv](https://docs.astral.sh/uv/). Install it, then one
+command gets you a working development environment:
+
+```shell
+uv sync --all-extras
+```
+
+That creates `.venv/`, installs everything from the committed `uv.lock`, and
+provisions a Python interpreter if you do not have a suitable one. Run
+commands through `uv run` (`uv run pytest tests`) or activate the environment
+with `source .venv/bin/activate`.
+
+To also install the git hooks, run `task setup`.
+
+### Dependencies
+
+Declare them in `pyproject.toml`, under `[project] dependencies` or
+`[project.optional-dependencies]`, then refresh the lock file:
+
+```shell
+uv lock
+```
+
+Commit `uv.lock` alongside the `pyproject.toml` change; CI runs
+`uv sync --locked` and fails if the two disagree.
+
 ### Build and run with Docker
 
 Define secrets in an `.env` file (do not quote values):
@@ -109,6 +135,9 @@ These steps can also be performed locally. For these commands to work, you will 
 export TESTPYPI_PASSWORD=... # token for https://test.pypi.org/legacy/
 export PYPI_PASSWORD=... # token for https://upload.pypi.org/legacy/
 ```
+
+The tasks pass these to `uv publish` as `UV_PUBLISH_TOKEN`; the test index is
+defined as `testpypi` under `[[tool.uv.index]]` in `pyproject.toml`.
 
 First, publish to the test repo and inspect the package:
 

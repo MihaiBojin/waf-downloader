@@ -56,6 +56,18 @@ if [ ${#DOCKER_TAGS[@]} -eq 0 ]; then
     echo "Using default image tag: $PROJECT_NAME:$GITTAG" >&2
 fi
 
+# The image builds the package from source, reading VERSION during the docker
+# build, so the release value has to stay in place until the build finishes.
+# Restoring the previous contents (rather than `git checkout --`) keeps an
+# uncommitted VERSION edit from being thrown away.
+PREVIOUS_VERSION="$(cat "$VERSION_FILE")"
+readonly PREVIOUS_VERSION
+restore_version() {
+    echo "Reverting version to repository value..."
+    echo "$PREVIOUS_VERSION" >"$VERSION_FILE"
+}
+trap restore_version EXIT
+
 echo "Updating version in '$VERSION_FILE' to: $VERSION"
 echo "$VERSION" >"$VERSION_FILE"
 
@@ -70,10 +82,6 @@ docker buildx build --sbom=true --attest type=provenance,mode=max $PUSH_FLAG \
     .
 res=$?
 set -e
-
-# Revert the version after the dist/ was built
-echo "Reverting version to repository value..."
-git checkout -- "$VERSION_FILE"
 
 if [ $res -ne 0 ]; then
     echo

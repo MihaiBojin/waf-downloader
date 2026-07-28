@@ -2,6 +2,6 @@
 set -euo pipefail
 
 # Ensure the up-to-date requirements are installed
-# shellcheck disable=SC1090
-eval "$(task venv)"
+# shellcheck disable=SC1091
+source "$HOME/.local/bin/env"
 task setup
