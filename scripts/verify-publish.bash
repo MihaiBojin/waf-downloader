@@ -11,7 +11,15 @@ readonly VERSION
 PROJECT_NAME="$(uv run --no-project python -c "import tomllib; print(tomllib.load(open('$DIR/../pyproject.toml','rb'))['project']['name'])")"
 readonly PROJECT_NAME
 
-# Retries a command up to 3 times
+# Retries a command up to 3 times.
+#
+# The point of retrying here is to outwait index propagation: the upload has
+# just happened and the package is not listed yet. uv caches the index response
+# it gets, negative answers included, so a bare retry re-reads the cached "no
+# such version" in about 2ms and the whole ladder expires without ever asking
+# PyPI again. Callers must pass --refresh-package so each attempt is a real
+# request; pip re-fetched on its own, which is why this only began to matter
+# once the toolchain moved to uv.
 retry() {
     MAX_ATTEMPTS=4
     count=0
@@ -71,11 +79,11 @@ print(' '.join(p['dependencies'] + p.get('optional-dependencies', {}).get('cli',
             uv pip install $DEPS
         fi
         echo "Attempting install: ${PROJECT_NAME}==$VERSION"
-        retry uv pip install --index-url https://test.pypi.org/simple/ "${PROJECT_NAME}==$VERSION"
+        retry uv pip install --refresh-package "$PROJECT_NAME" --index-url https://test.pypi.org/simple/ "${PROJECT_NAME}==$VERSION"
         ;;
     --prod)
         echo "Attempting install: ${PROJECT_NAME}==$VERSION"
-        retry uv pip install "${PROJECT_NAME}[cli]==$VERSION"
+        retry uv pip install --refresh-package "$PROJECT_NAME" "${PROJECT_NAME}[cli]==$VERSION"
         ;;
     --*= | -*)
         echo "Error: Unsupported flag $1" >&2
