@@ -8,7 +8,7 @@ VERSION="$(cat "$DIR"/../VERSION)"
 readonly VERSION
 
 # Load project name from project manifest
-PROJECT_NAME="$(python -c "import tomllib; print(tomllib.load(open('$DIR/../pyproject.toml','rb'))['project']['name'])")"
+PROJECT_NAME="$(uv run --no-project python -c "import tomllib; print(tomllib.load(open('$DIR/../pyproject.toml','rb'))['project']['name'])")"
 readonly PROJECT_NAME
 
 # Retries a command up to 3 times
@@ -43,28 +43,39 @@ if [[ "$#" -eq 0 ]]; then
 fi
 
 echo "Creating a virtual env..."
-VENV="$(mktemp -d)"
-python -m venv "$VENV"
+VENV="$(mktemp -d)/venv"
+readonly VENV
+# '--no-project' keeps the env detached from the working tree, so the check
+# really does exercise the published artifact rather than the local source.
+uv venv --no-project "$VENV"
+# 'uv pip' targets this env instead of the project's .venv
+export VIRTUAL_ENV="$VENV"
 
 echo "Copying verification script..."
 cp "$DIR"/../src/scripts/verify_install.py "$VENV/verify_install.py"
-
-# shellcheck disable=SC1091
-source "$VENV/bin/activate"
 
 echo "Attempting to install version ($VERSION) in virtualenv ($VENV)..."
 while [[ "$#" -gt 0 ]]; do
     case $1 in
     --test)
-        echo "Installing requirements-cli from main index, since not all packages are available in test.pypi..."
-        pip install -r "$DIR"/../requirements.txt
-        pip install -r "$DIR"/../requirements-cli.txt
+        # Dependencies come from the main index because test.pypi does not
+        # carry every third-party package.
+        DEPS="$(uv run --no-project python -c "
+import tomllib
+p = tomllib.load(open('$DIR/../pyproject.toml', 'rb'))['project']
+print(' '.join(p['dependencies'] + p.get('optional-dependencies', {}).get('cli', [])))
+")"
+        if [ -n "$DEPS" ]; then
+            echo "Installing dependencies from main index, since not all packages are available in test.pypi..."
+            # shellcheck disable=SC2086
+            uv pip install $DEPS
+        fi
         echo "Attempting install: ${PROJECT_NAME}==$VERSION"
-        retry pip install --index-url https://test.pypi.org/simple/ "${PROJECT_NAME}==$VERSION"
+        retry uv pip install --index-url https://test.pypi.org/simple/ "${PROJECT_NAME}==$VERSION"
         ;;
     --prod)
         echo "Attempting install: ${PROJECT_NAME}==$VERSION"
-        retry pip install "${PROJECT_NAME}[cli]==$VERSION"
+        retry uv pip install "${PROJECT_NAME}[cli]==$VERSION"
         ;;
     --*= | -*)
         echo "Error: Unsupported flag $1" >&2
@@ -76,7 +87,7 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 pushd "$VENV" >/dev/null 2>&1
-python verify_install.py
+"$VENV/bin/python" verify_install.py
 popd >/dev/null 2>&1
 
 echo "Virtualenv location: $VENV"

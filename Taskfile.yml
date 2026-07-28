@@ -4,70 +4,71 @@ version: "3"
 
 silent: false
 
+# These tasks are thin wrappers over uv, kept for muscle memory.
+# Everything they do can be done by calling uv directly.
+
 tasks:
   venv:
     cmds:
-      - echo "source venv/bin/activate"
+      - echo "source .venv/bin/activate"
 
   clean:
     cmds:
       - echo Cleaning up builds and caches... >&2
       - rm -rf {out,dist,build,.mypy_cache,.ruff_cache}
-      - find . -type d -path ./venv -prune -o -name ".pytest_cache" -exec rm -rf {} \;
-      - find . -type d -path ./venv -prune -o -name "__pycache__" -exec rm -rf {} \;
-      - find . -type d -path ./venv -prune -o -name "*.egg-info" -exec rm -rf {} \;
+      - find . -type d -path ./.venv -prune -o -name ".pytest_cache" -exec rm -rf {} \;
+      - find . -type d -path ./.venv -prune -o -name "__pycache__" -exec rm -rf {} \;
+      - find . -type d -path ./.venv -prune -o -name "*.egg-info" -exec rm -rf {} \;
 
   clean-venv:
     cmds:
       - echo "Deleting virtualenv..." >&2
-      - scripts/delete-venv.bash
+      - rm -rf .venv
 
   create-venv:
     cmds:
       - echo "Creating virtualenv..." >&2
-      - scripts/create-venv.bash
+      - uv venv
 
   install:
     cmds:
-      - echo "Installing packages in editable mode..." >&2
-      - python -m pip install -e ".[dev]" # toml
-      - scripts/uninstall-package.bash
-      - python -m pip install -e ".[cli,dev]"
+      - echo "Syncing the environment..." >&2
+      - uv sync --all-extras
 
   setup:
     deps: [install]
     cmds:
       - echo "Setting up repo for local development..." >&2
-      - pre-commit install --install-hooks
-      - pre-commit install --hook-type pre-push
+      - uv run pre-commit install --install-hooks
+      - uv run pre-commit install --hook-type pre-push
       - touch .env
 
   lint:
     cmds:
       - echo "Running linters..." >&2
-      - pre-commit run --all-files
+      - uv run pre-commit run --all-files
 
   test:
     cmds:
       - echo "Running tests..." >&2
-      - pytest tests
+      - uv run pytest tests
 
   build:
     cmds:
       - echo Cleaning up previous builds... >&2
       - rm -rf dist/
       - echo "Building..." >&2
-      - python -m build
+      - uv build
 
   build-inspect:
     deps: [build]
     vars:
       PROJECT_NAME:
-        sh: python -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['name'])"
+        sh: scripts/project-name.bash
     cmds:
       - echo >&2
       - echo "Inspecting wheel..." >&2
-      - wheel2json "dist/{{.PROJECT_NAME}}-$(cat VERSION)-py3-none-any.whl"
+      - uv run wheel2json "dist/{{.PROJECT_NAME}}-$(cat VERSION)-py3-none-any.whl"
 
       - echo >&2
       - echo "Inspecting archive..." >&2
@@ -90,7 +91,7 @@ tasks:
     silent: false
     cmds:
       - echo "Publishing to test repo..." >&2
-      - TWINE_PASSWORD="$TESTPYPI_PASSWORD" twine upload --repository-url https://test.pypi.org/legacy/ dist/\*
+      - UV_PUBLISH_TOKEN="$TESTPYPI_PASSWORD" uv publish --index testpypi
 
   publish-test-verify:
     cmds:
@@ -101,7 +102,7 @@ tasks:
     deps: [build]
     cmds:
       - echo "Publishing to PyPI..." >&2
-      - TWINE_PASSWORD="$PYPI_PASSWORD" twine upload dist/\*
+      - UV_PUBLISH_TOKEN="$PYPI_PASSWORD" uv publish
 
   publish-verify:
     cmds:

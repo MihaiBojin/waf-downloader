@@ -1,5 +1,0 @@
-# CLI requirements
-# keep-sorted start
-argparse==1.4.0
-python-dotenv==1.2.2
-# keep-sorted end
