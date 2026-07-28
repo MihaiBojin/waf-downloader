@@ -9,6 +9,14 @@ on:
     tags:
       - "v0.*"
 
+# Least privilege by default: the jobs that only read the repo inherit this, and
+# the ones that publish (push-docker, push-ghcr, release, helm) widen it for
+# themselves. Without a default, GITHUB_TOKEN's scopes come from the repository
+# setting, which is invisible from here and applies to every job equally.
+# see: https://docs.github.com/en/actions/security-guides/automatic-token-authentication#modifying-the-permissions-for-the-github_token
+permissions:
+  contents: read
+
 jobs:
   test:
     name: Run tests
@@ -327,6 +335,13 @@ jobs:
     needs:
       - push-docker
       - push-ghcr
+
+    # action-gh-release creates the release, and publish-sbom reads the SBOMs
+    # uploaded as artifacts by the image jobs and attaches them to it. The
+    # workflow default of contents:read is not enough for either.
+    permissions:
+      actions: read
+      contents: write
 
     steps:
       - name: Release
