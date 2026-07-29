@@ -111,10 +111,16 @@ jobs:
 
           # '--skip-existing' keeps a re-run idempotent: the release for a tag
           # that already published stays as it is, and only the index is redone.
+          #
+          # '--make-release-latest=false' because cr defaults it to true, and
+          # this job runs after `release` has already marked the product release
+          # as latest. Left alone, the chart release takes that badge -- which
+          # is what /releases/latest currently resolves to.
           cr upload \
             --owner "$OWNER" \
             --git-repo "$REPO" \
             --commit "$TARGET_SHA" \
+            --make-release-latest=false \
             --skip-existing \
             --package-path .cr-release-packages
 
