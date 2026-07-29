@@ -414,6 +414,13 @@ jobs:
           OWNER="${GITHUB_REPOSITORY%%/*}"
           REPO="${GITHUB_REPOSITORY##*/}"
 
+          # cr writes into these but does not create them; the action's wrapper
+          # script did it, and driving cr directly means doing it here. Without
+          # .cr-index, `cr index` fails writing its temp file into a directory
+          # that is not there.
+          mkdir -p .cr-release-packages
+          rm -rf .cr-index && mkdir -p .cr-index
+
           cr package charts/waf-downloader --package-path .cr-release-packages
 
           # '-c "$GITHUB_SHA"' is the fix: on a tag build that is the tagged
