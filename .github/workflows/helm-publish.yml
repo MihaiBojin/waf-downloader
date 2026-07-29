@@ -60,8 +60,31 @@ jobs:
         with:
           install_only: true
 
+      # Stamped inline rather than via scripts/helm-set-version.bash, because
+      # this workflow checks out the tag and would therefore run *that tag's*
+      # copy of the script. Tags cut before the script learned to take a version
+      # ignore the argument and read the newest tag instead -- so republishing
+      # v0.3.2 either fails on a missing releasetools, or silently packages the
+      # newest version under the old one's name. Keep this in step with
+      # scripts/helm-set-version.bash, which serves the same template locally.
       - name: Set chart version
-        run: scripts/helm-set-version.bash "${{ inputs.ref }}"
+        env:
+          REF: ${{ inputs.ref }}
+        run: |
+          VERSION="${REF#v}"
+          CHART="charts/waf-downloader"
+
+          sed -e "s/version: \"{{ VERSION }}\"/version: $VERSION/" \
+              -e "s/appVersion: \"{{ VERSION }}\"/appVersion: $VERSION/" \
+              "$CHART/Chart.yaml.tmpl" >"$CHART/Chart.yaml"
+
+          # A leftover placeholder means the template changed shape; packaging
+          # would fail later with something far less obvious than this.
+          if grep -q "{{ VERSION }}" "$CHART/Chart.yaml"; then
+            echo "ERROR: unsubstituted placeholder left in Chart.yaml" >&2
+            exit 1
+          fi
+          grep -E "^(version|appVersion):" "$CHART/Chart.yaml"
 
       - name: Package and publish the chart
         env:
