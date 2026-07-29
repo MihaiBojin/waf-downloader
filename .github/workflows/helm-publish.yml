@@ -1,0 +1,126 @@
+name: Publish Helm Chart
+
+# Publishes the chart for a release tag. Called by cicd.yml as part of a
+# release, and runnable on its own for a tag that was already released.
+#
+# The chart pipeline runs last, behind the PyPI upload, so a failure there used
+# to be unrecoverable: re-running the release meant re-uploading a version PyPI
+# will not accept twice. Being able to publish a chart for an existing tag, on
+# its own, is what makes that recoverable.
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: "Release tag whose chart should be published, e.g. v0.3.2"
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Release tag whose chart should be published, e.g. v0.3.2"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  publish-chart:
+    name: Package and publish
+    runs-on: ubuntu-latest
+
+    # cr creates the chart's GitHub release and pushes the index to gh-pages.
+    # see: https://docs.github.com/en/actions/security-guides/automatic-token-authentication#modifying-the-permissions-for-the-github_token
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout the release tag
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0
+
+      - name: Configure git
+        run: |
+          git config user.name "$GITHUB_ACTOR" # "github-actions[bot]"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com" # "github-actions[bot]@users.noreply.github.com"
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v5.0.1
+
+      # Install cr only. The action's own release step runs
+      # `cr upload -c "$(git rev-parse HEAD)"`, and its change detection diffs
+      # tracked files under charts/ against the tag being released -- which is
+      # the commit being built, so nothing ever looks changed. Driving cr
+      # directly sidesteps both: every release tag publishes its chart, targeted
+      # at a commit that exists on the remote.
+      - name: Install chart-releaser
+        uses: helm/chart-releaser-action@v1.7.0
+        with:
+          install_only: true
+
+      - name: Set chart version
+        run: scripts/helm-set-version.bash "${{ inputs.ref }}"
+
+      - name: Package and publish the chart
+        env:
+          CR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          OWNER="${GITHUB_REPOSITORY%%/*}"
+          REPO="${GITHUB_REPOSITORY##*/}"
+
+          # HEAD is the tag that was checked out, and nothing here commits, so
+          # this is a commit that exists on the remote. GitHub rejects a release
+          # whose target_commitish it has never seen (422, "not a valid tag"),
+          # which is what a runner-local commit produced.
+          TARGET_SHA="$(git rev-parse HEAD)"
+          echo "Publishing chart for ${{ inputs.ref }} at $TARGET_SHA"
+
+          # cr writes into these but does not create them; the action's wrapper
+          # script did it, and driving cr directly means doing it here. Without
+          # .cr-index, `cr index` fails writing its temp file into a directory
+          # that is not there.
+          mkdir -p .cr-release-packages
+          rm -rf .cr-index && mkdir -p .cr-index
+
+          cr package charts/waf-downloader --package-path .cr-release-packages
+
+          # '--skip-existing' keeps a re-run idempotent: the release for a tag
+          # that already published stays as it is, and only the index is redone.
+          cr upload \
+            --owner "$OWNER" \
+            --git-repo "$REPO" \
+            --commit "$TARGET_SHA" \
+            --skip-existing \
+            --package-path .cr-release-packages
+
+          cr index \
+            --owner "$OWNER" \
+            --git-repo "$REPO" \
+            --push \
+            --package-path .cr-release-packages
+
+      # '--skip-existing' means a chart that failed to publish still exits 0,
+      # and an index that was not pushed is invisible from the release alone.
+      # Check both: the release exists, and the published index resolves it.
+      - name: Verify the chart was published
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          CHART_VERSION="$(awk '/^version:/ {print $2; exit}' charts/waf-downloader/Chart.yaml)"
+          RELEASE="waf-downloader-${CHART_VERSION}"
+
+          if ! gh release view "$RELEASE" --json tagName >/dev/null 2>&1; then
+            echo "ERROR: chart release '$RELEASE' was not published" >&2
+            exit 1
+          fi
+
+          # cr pushes the index from its own worktree, so the local ref is stale
+          git fetch -q origin gh-pages
+          if ! git show "origin/gh-pages:index.yaml" | grep -q "waf-downloader-${CHART_VERSION}.tgz"; then
+            echo "ERROR: '$RELEASE' is missing from the gh-pages index" >&2
+            exit 1
+          fi
+
+          echo "Published '$RELEASE' and indexed it on gh-pages" >&2

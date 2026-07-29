@@ -9,8 +9,12 @@ source "$DIR/functions.bash"
 
 # Helm chart versions are SemVer without a leading 'v'. The published chart
 # tags and index entries all use the bare form (waf-downloader-0.2.5), so strip
-# the prefix that git::latest_version returns.
-VERSION="$(releasetools git::latest_version)"
+# the prefix that a tag carries.
+#
+# Takes the version as an optional argument, falling back to the newest tag on
+# the remote. Republishing the chart for an older release has to stamp that
+# release's version, not whatever happens to be newest now.
+VERSION="${1:-$(releasetools git::latest_version)}"
 VERSION="${VERSION#v}"
 readonly VERSION
 

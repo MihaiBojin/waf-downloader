@@ -122,6 +122,6 @@ tasks:
       - helm template my-release charts/waf-downloader
 
   set-chart-version:
-    desc: Update the Helm chart version
+    desc: Update the Helm chart version (optionally pass a version, e.g. -- v0.3.2)
     cmds:
-      - scripts/helm-set-version.bash
+      - scripts/helm-set-version.bash {{.CLI_ARGS}}
