@@ -51,7 +51,7 @@ cli = [
 ]
 dev = [
     # keep-sorted start
-    "pre-commit==4.6.1",
+    "pre-commit==4.6.2",
     "pytest==9.1.1",
     "wheel-inspect==1.8.0",
     # keep-sorted end
