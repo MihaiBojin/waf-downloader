@@ -129,6 +129,10 @@ jobs:
           UV_PUBLISH_TOKEN: ${{ secrets.PYPI_PASSWORD }}
         run: uv publish
 
+      # verify-publish.bash waits on the index through net::await_url.
+      - name: Install the release tools
+        uses: releasetools/cli@v0
+
       - name: Verify package install from PyPI
         run: scripts/verify-publish.bash --prod
 
