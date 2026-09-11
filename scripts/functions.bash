@@ -30,4 +30,3 @@ get_project_name() {
     dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
     uv run --no-project python -c "import tomllib; print(tomllib.load(open('$dir/../pyproject.toml','rb'))['project']['name'])"
 }
-
