@@ -34,7 +34,7 @@ classifiers = [
 # for requirements files read through a build-backend hook.
 dependencies = [
     # keep-sorted start
-    "more-itertools==11.1.0",
+    "more-itertools==11.2.0",
     "psycopg-binary==3.3.6",
     "psycopg-pool==3.3.3",
     "psycopg==3.3.6",
