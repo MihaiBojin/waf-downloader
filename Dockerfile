@@ -2,7 +2,7 @@
 # the same base image and the same architecture. No '--platform=$BUILDPLATFORM':
 # the environment holds compiled wheels (psycopg-binary), so each entry in a
 # multi-platform manifest has to be built for its own platform.
-FROM python:3.14-slim AS builder
+FROM python:3.15-slim AS builder
 COPY --from=ghcr.io/astral-sh/uv:0.11.32 /uv /uvx /bin/
 
 # Compile bytecode for faster cold starts; copy (not link) so the cache mount
@@ -41,7 +41,7 @@ COPY . /app
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev --no-editable --extra cli
 
-FROM python:3.14-slim
+FROM python:3.15-slim
 
 ENV PYTHONUNBUFFERED=1
 
