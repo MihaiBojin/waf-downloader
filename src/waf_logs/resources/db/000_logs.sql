@@ -6,5 +6,5 @@ create table
         with
             time zone not null,
             data jsonb,
-            primary key (zone_id, "datetime", rayname)
+            primary key ("datetime", zone_id, rayname)
     );
