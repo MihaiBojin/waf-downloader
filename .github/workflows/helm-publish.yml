@@ -27,7 +27,7 @@ permissions:
 jobs:
   publish-chart:
     name: Package and publish
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
 
     # cr creates the chart's GitHub release and pushes the index to gh-pages.
     # see: https://docs.github.com/en/actions/security-guides/automatic-token-authentication#modifying-the-permissions-for-the-github_token
