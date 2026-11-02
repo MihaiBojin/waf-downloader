@@ -5,6 +5,7 @@ import threading
 import time
 from typing import Any, Callable, List, Optional
 
+import psycopg
 from psycopg_pool import ConnectionPool
 
 from waf_logs import WAF
@@ -53,23 +54,44 @@ class Database:
         """Returns the maximum number of configured connections"""
         return self.max_pool_size
 
-    def pooled_exec(self, func: Callable[[Any], Any]):
-        # Get a connection from the pool
-        conn = None
+    @staticmethod
+    def _rollback(conn: Any) -> None:
+        """Rolls back, ignoring a connection the server has already closed."""
+        if conn.closed:
+            return
         try:
-            p: ConnectionPool = self.pool()
+            conn.rollback()
+        except psycopg.OperationalError:
+            pass
+
+    def pooled_exec(self, func: Callable[[Any], Any], max_attempts: int = 3):
+        """Runs func on a pooled connection.
+
+        Connection failures are retried on a fresh connection, so func
+        must be safe to run more than once. Other errors are raised as-is.
+        """
+        p: ConnectionPool = self.pool()
+        for attempt in range(1, max_attempts + 1):
             conn = p.getconn()
+            try:
+                return func(conn)
 
-            return func(conn)
+            except psycopg.OperationalError as e:
+                self._rollback(conn)
+                if attempt == max_attempts:
+                    raise
+                print(
+                    f"Database connection error: {e}; retrying (attempt {attempt}/{max_attempts})",
+                    file=sys.stderr,
+                )
+                time.sleep(attempt)
 
-        except Exception as e:
-            if conn:
-                conn.rollback()
-            raise e
+            except Exception:
+                self._rollback(conn)
+                raise
 
-        finally:
-            # Return the connection to the pool
-            if conn:
+            finally:
+                # The pool discards connections that are no longer usable
                 p.putconn(conn)
 
     @staticmethod
@@ -125,19 +147,9 @@ class Database:
                 DO UPDATE SET datetime = EXCLUDED.datetime
                 """
 
-                try:
-                    cur.execute(update_query, (name, zone_id, event_time))
-                    conn.commit()
-                    print(
-                        f"Event '{name}/{zone_id}' set to {event_time}", file=sys.stderr
-                    )
-
-                except Exception as e:
-                    print(
-                        f"Failed to set event '{name}/{zone_id}' to {event_time}: {e}",
-                        file=sys.stderr,
-                    )
-                    conn.rollback()  # Roll back the transaction before retrying
+                cur.execute(update_query, (name, zone_id, event_time))
+                conn.commit()
+                print(f"Event '{name}/{zone_id}' set to {event_time}", file=sys.stderr)
 
             finally:
                 # Close the cursor
@@ -150,7 +162,6 @@ class Database:
         def get_row(conn: Any) -> Optional[datetime]:
             # Create a cursor object
             cur = conn.cursor()
-            res: Optional[str] = None
             try:
                 # Insert JSON data into the table
                 select_query = """
@@ -167,19 +178,13 @@ class Database:
                 res = cur.fetchone()
                 conn.commit()
 
-            except Exception as e:
-                print(f"Failed to get event '{name}/{zone_id}': {e}", file=sys.stderr)
-
             finally:
-                # Close the cursor
-                if cur:
-                    cur.close()
+                cur.close()
 
-                # Parse the datetime
-                if not res:
-                    return None
+            if not res:
+                return None
 
-                return datetime.fromisoformat(str(res[0]))
+            return datetime.fromisoformat(str(res[0]))
 
         return get_row
 
@@ -208,10 +213,9 @@ class Database:
             """Bulk inserts the specified 'rows' with a retry mechanism"""
             t0 = time.time()
 
-            # Create a cursor object
+            rowcount = -1
             cur = conn.cursor()
             try:
-                # Insert JSON data into the table
                 insert_query = f"""
                 INSERT INTO {table_name} (rayname, zone_id, datetime, data)
                 VALUES (%s, %s, %s, %s)
@@ -220,36 +224,25 @@ class Database:
                 """
 
                 for attempt in range(max_retries):
-                    try:
-                        cur.executemany(
-                            query=insert_query, params_seq=rows, returning=True
-                        )
-                        conn.commit()
+                    cur.executemany(query=insert_query, params_seq=rows, returning=True)
+                    conn.commit()
+                    rowcount = cur.rowcount
 
-                        if cur.rowcount != -1:
-                            break
-                        print(
-                            f"Cursor returned -1, retrying (attempt {attempt + 1}/{max_retries})",
-                            file=sys.stderr,
-                        )
-                    except Exception as e:
-                        print(
-                            f"Exception: {e}, retrying (attempt {attempt + 1}/{max_retries})",
-                            file=sys.stderr,
-                        )
-                        conn.rollback()  # Roll back the transaction before retrying
-                        time.sleep(1)
+                    if rowcount != -1:
+                        break
+                    print(
+                        f"Cursor returned -1, retrying (attempt {attempt + 1}/{max_retries})",
+                        file=sys.stderr,
+                    )
                 else:
-                    print("Max retries reached, insert chunk failed", file=sys.stderr)
+                    print("Max retries reached, rowcount unknown", file=sys.stderr)
 
             finally:
                 # Close the cursor
                 cur.close()
 
-                # Compute duration
-                t1 = time.time() - t0
-                sz = sum([len(r[2]) for r in rows])
-                return (t1, cur.rowcount, len(rows), sz)
+            sz = sum([len(r[2]) for r in rows])
+            return (time.time() - t0, rowcount, len(rows), sz)
 
         return insert_rows
 
