@@ -1,4 +1,5 @@
 name: Publish Helm Chart
+run-name: Publish Helm chart ${{ inputs.ref }}
 
 # Publishes the chart for a release tag. Called by cicd.yml as part of a
 # release, and runnable on its own for a tag that was already released.
