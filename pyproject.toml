@@ -35,9 +35,9 @@ classifiers = [
 dependencies = [
     # keep-sorted start
     "more-itertools==11.2.1",
-    "psycopg-binary==3.3.6",
+    "psycopg-binary==3.3.8",
     "psycopg-pool==3.3.3",
-    "psycopg==3.3.6",
+    "psycopg==3.3.8",
     "requests==2.34.2",
     # keep-sorted end
 ]
